@@ -104,9 +104,8 @@ public class ServerAppState extends AbstractAppState implements PhysicsCollision
     }
 
     private void generateRandomObject(float alpha, int i, boolean direction, int obnum) {
-        String type = FastMath.rand.nextBoolean() ? "Models/tree1/tree1.j3o" : (FastMath.rand.nextBoolean() ? "Models/tree2/tree2.j3o" : "Models/busstop/busstop.j3o");
+        String type = FastMath.rand.nextBoolean() ? "Models/tree1/tree1.j3o" : (FastMath.rand.nextBoolean() ? "Models/tree2/tree2.j3o" : (FastMath.rand.nextBoolean() ? "Models/house1/house1.j3o" : "Models/busstop/busstop.j3o"));
         Node object = (Node) app.getAssetManager().loadModel(type);
-        object.scale(5);
         ObservedNode observedObject = new ObservedNode("Object" + obnum, changedSpatials, type);
         observedObject.rotate(0, -alpha + (direction ? 1 : -1) * FastMath.PI / 2, 0);
         observedObject.setLocalTranslation(FastMath.cos(alpha) * i, -5f, FastMath.sin(alpha) * i);

@@ -91,7 +91,6 @@ public class ClientAppState extends AbstractAppState implements MessageListener<
         } else if (message instanceof DefinitionMessage) {
             for (ObjectDefinition definition : ((DefinitionMessage) message).getDefinitions()) {
                 Node object = (Node) app.getAssetManager().loadModel(definition.getType());
-                object.scale(5);
                 object.setLocalRotation(definition.getRot());
                 object.setLocalTranslation(definition.getTranslation());
                 ConcurrentLinkedQueue<LocRotTime> queue = new ConcurrentLinkedQueue<LocRotTime>();
