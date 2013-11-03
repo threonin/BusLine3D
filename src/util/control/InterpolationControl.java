@@ -16,10 +16,12 @@ public class InterpolationControl extends AbstractControl {
 
     boolean active;
     private Vector3f nextTrans = new Vector3f();
+    private Quaternion lastRot = new Quaternion();
     private Quaternion nextRot = new Quaternion();
+    private Quaternion slerpRot = new Quaternion();
     private float nexttime;
+    private float deltatime;
     private Vector3f deltaTrans = new Vector3f();
-    private Quaternion deltaRot = new Quaternion();
     private ConcurrentLinkedQueue<LocRotTime> coming = new ConcurrentLinkedQueue<LocRotTime>();
     private Timer timer;
 
@@ -41,8 +43,8 @@ public class InterpolationControl extends AbstractControl {
             nextStep();
         }
         if (active) {
-            spatial.setLocalTranslation(deltaTrans.mult(time - nexttime).add(nextTrans));
-            spatial.setLocalRotation(deltaRot.mult(time - nexttime).add(nextRot));
+            spatial.setLocalTranslation(deltaTrans.mult(time - nexttime).addLocal(nextTrans));
+            spatial.setLocalRotation(slerpRot.slerp(nextRot, lastRot, (nexttime - time) / deltatime));
         }
     }
 
@@ -54,7 +56,7 @@ public class InterpolationControl extends AbstractControl {
         }
         float time = this.timer.getTimeInSeconds();
         deltaTrans.set(spatial.getLocalTranslation());
-        deltaRot.set(spatial.getLocalRotation());
+        lastRot.set(spatial.getLocalRotation());
         float sampletime = time;
         while (nexttime <= time) {
             nextTrans.set(locrottime.getTranslation());
@@ -69,13 +71,13 @@ public class InterpolationControl extends AbstractControl {
                     return;
                 }
                 deltaTrans.set(nextTrans);
-                deltaRot.set(nextRot);
+                lastRot.set(nextRot);
                 sampletime = nexttime;
             }
         }
-        float speed = 1.0f / (sampletime - nexttime);
+        deltatime = nexttime - sampletime;
+        float speed = 1.0f / -deltatime;
         deltaTrans.subtractLocal(nextTrans).multLocal(speed);
-        deltaRot.subtractLocal(nextRot).multLocal(speed);
         active = true;
     }
 
