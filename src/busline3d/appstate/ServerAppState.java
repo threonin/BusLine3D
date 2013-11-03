@@ -110,7 +110,7 @@ public class ServerAppState extends AbstractAppState implements PhysicsCollision
         observedObject.rotate(0, -alpha + (direction ? 1 : -1) * FastMath.PI / 2, 0);
         observedObject.setLocalTranslation(FastMath.cos(alpha) * i, -5f, FastMath.sin(alpha) * i);
         observedObject.attachChild(object);
-        RigidBodyControl control = new RigidBodyControl(5000f);
+        RigidBodyControl control = new RigidBodyControl((Float) object.getUserData("weight"));
         control.setEnabled(false);
         observedObject.addControl(control);
         control.setSleepingThresholds(2, 2);
