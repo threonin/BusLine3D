@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nifty xmlns="http://nifty-gui.sourceforge.net/nifty-1.3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://nifty-gui.sourceforge.net/nifty-1.3.xsd http://nifty-gui.sourceforge.net/nifty-1.3.xsd">
+    <useStyles filename="nifty-default-styles.xml" />
+    <useControls filename="nifty-default-controls.xml" />
+    <screen id="start" controller="busline3d.appstate.StartMenuAppState">
+        <layer childLayout="center">
+            <panel width="150px" height="90px" align="center" valign="center" childLayout="vertical" backgroundColor="#55a5" padding="10" visibleToMouse="true">
+                <control id="singleplayer" align="center" name="button" label="Einzelspieler" >
+                    <interact onClick="singleplayer()"/>
+                </control>
+                <control id="server" align="center" name="button" label="Spiel hosten" >
+                    <interact onClick="serverdialog()"/>
+                </control>
+                <control id="client" align="center" name="button" label="Spiel beitreten" >
+                    <interact onClick="clientdialog()"/>
+                </control>
+            </panel>
+        </layer>
+    </screen>
+
+    <screen id="server" controller="busline3d.appstate.StartMenuAppState">
+        <layer childLayout="center">
+            <panel width="150px" height="90px" align="center" valign="center" childLayout="vertical" backgroundColor="#55a5" padding="10">
+                <text font="aurulent-sans-16.fnt" color="#ffff" text="Port:" />
+                <control id="port" name="textfield" text="6143" />
+                <control id="server" align="center" name="button" label="Start" >
+                    <interact onClick="server()"/>
+                </control>
+            </panel>
+        </layer>
+    </screen>
+
+    <screen id="client" controller="busline3d.appstate.StartMenuAppState">
+        <layer childLayout="center">
+            <panel width="150px" height="120px" align="center" valign="center" childLayout="vertical" backgroundColor="#55a5" padding="10">
+                <text font="aurulent-sans-16.fnt" color="#ffff" text="Server:" />
+                <control id="host" name="textfield" text="localhost" />
+                <text font="aurulent-sans-16.fnt" color="#ffff" text="Port:" />
+                <control id="port" name="textfield" text="6143" />
+                <control id="server" align="center" name="button" label="Start" >
+                    <interact onClick="client()"/>
+                </control>
+            </panel>
+        </layer>
+    </screen>
+</nifty>
