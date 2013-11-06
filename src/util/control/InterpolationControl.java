@@ -22,7 +22,7 @@ public class InterpolationControl extends AbstractControl {
     private float nexttime;
     private float deltatime;
     private Vector3f deltaTrans = new Vector3f();
-    private ConcurrentLinkedQueue<LocRotTime> coming = new ConcurrentLinkedQueue<LocRotTime>();
+    private ConcurrentLinkedQueue<LocRotTime> coming;
     private Timer timer;
 
     public InterpolationControl(ConcurrentLinkedQueue<LocRotTime> coming, Timer timer) {
