@@ -1,4 +1,4 @@
-package busline3d.appstate;
+package util.appstate;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
@@ -8,16 +8,14 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.PhysicsCollisionEvent;
 import com.jme3.bullet.collision.PhysicsCollisionListener;
 import com.jme3.bullet.control.RigidBodyControl;
-import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.network.ConnectionListener;
 import com.jme3.network.HostedConnection;
 import com.jme3.network.Network;
 import com.jme3.network.Server;
-import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import com.jme3.scene.shape.Dome;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -48,6 +46,7 @@ public class ServerAppState extends AbstractAppState implements PhysicsCollision
     private ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
     private Server server;
     private int port;
+    private int obnum;
 
     public ServerAppState(int port) {
         this.port = port;
@@ -57,25 +56,9 @@ public class ServerAppState extends AbstractAppState implements PhysicsCollision
     public void initialize(AppStateManager stateManager, Application app) {
         this.app = (SimpleApplication) app;
         this.rootNode = this.app.getRootNode();
-        bulletAppState = new BulletAppState();
-        bulletAppState.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
-        stateManager.attach(bulletAppState);
-
-        RigidBodyControl floorBody = new RigidBodyControl(0);
-        Spatial floor = rootNode.getChild("floor");
-        floor.addControl(floorBody);
-        floorBody.setFriction(1);
-        bulletAppState.getPhysicsSpace().add(floor);
-
-        Dome dome = new Dome(Vector3f.ZERO, 10, 100, 400, true);
-        Geometry floorDome = new Geometry("floor dome", dome);
-        floorDome.setLocalTranslation(0, -5, 0);
-        floorDome.addControl(new RigidBodyControl(0));
-        bulletAppState.getPhysicsSpace().add(floorDome);
+        this.bulletAppState = stateManager.getState(BulletAppState.class);
 
         bulletAppState.getPhysicsSpace().addCollisionListener(this);
-        addRandomObjects();
-        stateManager.attach(new DriveBusAppState(changedSpatials));
 
         if (port > 0) {
             try {
@@ -91,32 +74,22 @@ public class ServerAppState extends AbstractAppState implements PhysicsCollision
         //bulletAppState.setDebugEnabled(true);
     }
 
-    private void addRandomObjects() {
-        int treenum = 0;
-        for (float alpha = 0; alpha < FastMath.PI * 2; alpha += 0.1) {
-            for (int i = 230; i <= 290; i += 30) {
-                generateRandomObject(alpha, i, true, treenum++);
-            }
-            for (int i = 320; i <= 380; i += 30) {
-                generateRandomObject(alpha, i, false, treenum++);
-            }
-        }
-    }
-
-    private void generateRandomObject(float alpha, int i, boolean direction, int obnum) {
-        String type = FastMath.rand.nextBoolean() ? "Models/tree1/tree1.j3o" : (FastMath.rand.nextBoolean() ? "Models/tree2/tree2.j3o" : (FastMath.rand.nextBoolean() ? "Models/house1/house1.j3o" : (FastMath.rand.nextBoolean() ? "Models/busstop_sign/busstop_sign.j3o" : "Models/busstop/busstop.j3o")));
-        Node object = (Node) app.getAssetManager().loadModel(type);
-        ObservedNode observedObject = new ObservedNode("Object" + obnum, changedSpatials, type);
-        observedObject.rotate(0, -alpha + (direction ? 1 : -1) * FastMath.PI / 2, 0);
-        observedObject.setLocalTranslation(FastMath.cos(alpha) * i, -5f, FastMath.sin(alpha) * i);
-        observedObject.attachChild(object);
-        RigidBodyControl control = new RigidBodyControl((Float) object.getUserData("weight"));
+    public RigidBodyControl addRigidObservedSpatial(Spatial spatial, Vector3f location, Quaternion rotation, String type, float weight) {
+        ObservedNode observedObject = addObservedSpatial(spatial, location, rotation, "Object" + obnum++, type);
+        RigidBodyControl control = new RigidBodyControl(weight);
         control.setEnabled(false);
         observedObject.addControl(control);
-        control.setSleepingThresholds(2, 2);
-        control.setFriction(1);
         bulletAppState.getPhysicsSpace().add(observedObject);
+        return control;
+    }
+
+    public ObservedNode addObservedSpatial(Spatial spatial, Vector3f location, Quaternion rotation, String name, String type) {
+        ObservedNode observedObject = new ObservedNode(name, changedSpatials, type);
+        observedObject.attachChild(spatial);
+        observedObject.setLocalRotation(rotation);
+        observedObject.setLocalTranslation(location);
         rootNode.attachChild(observedObject);
+        return observedObject;
     }
 
     public void collision(PhysicsCollisionEvent event) {
@@ -140,8 +113,14 @@ public class ServerAppState extends AbstractAppState implements PhysicsCollision
     @Override
     public void cleanup() {
         if (port > 0) {
-            exec.shutdownNow();
-            server.close();
+            try {
+                exec.shutdownNow();
+            } catch (Exception ex) {
+            }
+            try {
+                server.close();
+            } catch (Exception ex) {
+            }
         }
         super.cleanup();
     }

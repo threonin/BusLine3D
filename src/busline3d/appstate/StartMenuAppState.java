@@ -10,6 +10,7 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
+import com.jme3.bullet.BulletAppState;
 import com.jme3.light.AmbientLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
@@ -29,6 +30,8 @@ import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import util.appstate.ClientAppState;
+import util.appstate.ServerAppState;
 import util.mesh.RingMesh;
 import util.message.DefinitionMessage;
 import util.message.MovementMessage;
@@ -69,8 +72,7 @@ public class StartMenuAppState extends AbstractAppState implements ScreenControl
 
     public void singleplayer() {
         nifty.removeScreen("start");
-        startGame();
-        stateManager.attach(new ServerAppState(0));
+        startServer(0);
     }
 
     public void serverdialog() {
@@ -82,9 +84,17 @@ public class StartMenuAppState extends AbstractAppState implements ScreenControl
         if (port != 0) {
             nifty.removeScreen("server");
             initSerializer();
-            startGame();
-            stateManager.attach(new ServerAppState(port));
+            startServer(port);
         }
+    }
+
+    private void startServer(int port) {
+        startGame();
+        BulletAppState bulletAppState = new BulletAppState();
+        bulletAppState.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
+        stateManager.attach(bulletAppState);
+        stateManager.attach(new ServerAppState(port));
+        stateManager.attach(new BusServerAppState());
     }
 
     public void clientdialog() {
@@ -98,6 +108,7 @@ public class StartMenuAppState extends AbstractAppState implements ScreenControl
             initSerializer();
             startGame();
             stateManager.attach(new ClientAppState(host, port));
+            stateManager.attach(new BusClientAppState());
             nifty.removeScreen("client");
         }
     }
@@ -107,7 +118,7 @@ public class StartMenuAppState extends AbstractAppState implements ScreenControl
         try {
             port = Integer.parseInt(screen.findNiftyControl("port", TextField.class).getRealText());
         } catch (NumberFormatException ex) {
-            Logger.getLogger(ClientAppState.class.getName()).log(Level.SEVERE, "invalid number!");
+            Logger.getLogger(BusClientAppState.class.getName()).log(Level.SEVERE, "invalid number!");
         }
         return port;
     }

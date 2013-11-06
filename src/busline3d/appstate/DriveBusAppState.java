@@ -16,13 +16,13 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.math.FastMath;
 import com.jme3.math.Matrix3f;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Transform;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import java.util.concurrent.ConcurrentHashMap;
-import util.ObservedNode;
+import util.appstate.ServerAppState;
 
 /**
  *
@@ -39,23 +39,18 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
     private float steeringValue = 0;
     private float accelerationValue = 0;
     private Vector3f jumpForce = new Vector3f(0, 3000, 0);
-    private ConcurrentHashMap<String, Spatial> changedSpatials;
-
-    public DriveBusAppState(ConcurrentHashMap<String, Spatial> changedSpatials) {
-        this.changedSpatials = changedSpatials;
-    }
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
         this.app = (SimpleApplication) app;
+        ServerAppState serverAppState = stateManager.getState(ServerAppState.class);
         Node model = (Node) this.app.getRootNode().getChild("Bus");
-        busNode = new ObservedNode("Bus", changedSpatials, "");
-        busNode.setLocalTransform(model.getLocalTransform());
+        Vector3f location = model.getLocalTranslation().clone();
+        Quaternion rotation = model.getLocalRotation().clone();
         model.removeFromParent();
         model.setLocalTransform(Transform.IDENTITY);
-        busNode.attachChild(model);
-        this.app.getRootNode().attachChild(busNode);
+        busNode = serverAppState.addObservedSpatial(model, location, rotation, "Bus", "");
         initVehicleControl();
         setupKeys(this.app.getInputManager());
         this.app.getFlyByCamera().setEnabled(false);
@@ -200,11 +195,5 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
             }
         }
         return null;
-    }
-
-    @Override
-    public void cleanup() {
-        this.app.getStateManager().getState(BulletAppState.class).getPhysicsSpace().remove(busControl);
-        super.cleanup();
     }
 }
