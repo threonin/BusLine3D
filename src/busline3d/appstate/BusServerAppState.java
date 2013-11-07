@@ -51,8 +51,11 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
     private Server server;
     private HostedConnection conn;
     private boolean firstStation = true;
+    private ArrayList<Node> stations = new ArrayList<Node>();
+    private boolean singleplayer;
 
-    public BusServerAppState() {
+    public BusServerAppState(boolean singleplayer) {
+        this.singleplayer = singleplayer;
         for (int i = 0; i < 6; i++) {
             this.randomObjects[i] = new ArrayList<Node>();
             this.distances[i] = new ArrayList<Float>();
@@ -71,7 +74,13 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
 
         addDome();
 
-        stateManager.attach(new DriveBusAppState());
+        if (singleplayer) {
+            this.addStation();
+            for (int i = 0; i < 4; i++) {
+                radius += CIRCUMFERENCEINCREMENT / (FastMath.PI * 2);
+                this.addStation();
+            }
+        }
     }
 
     private void addDome() {
@@ -130,11 +139,20 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
         for (ArrayList<Node> rndObjectList : randomObjects) {
             obnum = moveRandomObjects(i++, rndObjectList, allChangedNodes, obnum);
         }
-        serverAppState.clearChangedSpatials();
-        serverAppState.addObjects(addRandomObjects(), conn);
+        if (singleplayer) {
+            addRandomObjects();
+        } else {
+            broadcastChanges(allChangedNodes, i);
+        }
         if (firstStation) {
             firstStation = false;
         }
+        this.app.getStateManager().getState(DriveBusAppState.class).resetBus();
+    }
+
+    private void broadcastChanges(ObjectData[] allChangedNodes, int i) {
+        serverAppState.clearChangedSpatials();
+        serverAppState.addObjects(addRandomObjects(), conn);
         serverAppState.defaultConnectionListener.connectionAdded(server, conn);
         if (allChangedNodes.length <= MAXOBJECTSPERMESSAGE) {
             server.broadcast(Filters.notEqualTo(conn), new MovementMessage(0, allChangedNodes).setReliable(true));
@@ -148,7 +166,6 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
                 i += MAXOBJECTSPERMESSAGE;
             }
         }
-        this.app.getStateManager().getState(DriveBusAppState.class).resetBus();
     }
 
     private Iterable<Spatial> addRandomObjects() {
@@ -161,15 +178,35 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
             float min = MINDIST / offsetradius;
             float diff = MAXDIST / offsetradius - min;
             float max = FastMath.PI * 2 - min;
+            float stationpos = (i == 3) ? ((max - startoffset) * FastMath.nextRandomFloat() + startoffset) : 10;
             for (float alpha = startoffset; alpha <= max; alpha += (FastMath.nextRandomFloat() * diff + min)) {
-                Node object = generateRandomObject(alpha, offsetradius, offset < 0);
-                randomObjects[i].add(object);
-                distances[i].add(alpha * offsetradius);
-                newObjects.add(object);
+                if (alpha >= stationpos) {
+                    stationpos = 10;
+                    stations.add(generateStation(alpha, offsetradius, i, newObjects));
+                } else {
+                    Node object = generateRandomObject(alpha, offsetradius, offset < 0);
+                    randomObjects[i].add(object);
+                    distances[i].add(alpha * offsetradius);
+                    newObjects.add(object);
+                }
             }
             i++;
         }
         return newObjects;
+    }
+
+    private Node generateStation(float alpha, float offsetradius, int i, ArrayList<Spatial> newObjects) {
+        Spatial busstopmodel = (Spatial) app.getAssetManager().loadModel("Models/busstop/busstop.j3o");
+        Node busstop = placeObject(alpha, offsetradius, false, busstopmodel, "Models/busstop/busstop.j3o");
+        randomObjects[i].add(busstop);
+        distances[i].add(alpha * offsetradius);
+        newObjects.add(busstop);
+        Spatial busstopsignmodel = (Spatial) app.getAssetManager().loadModel("Models/busstop_sign/busstop_sign.j3o");
+        Node busstopsign = placeObject(alpha + 10 / offsetradius, offsetradius, false, busstopsignmodel, "Models/busstop_sign/busstop_sign.j3o");
+        randomObjects[i].add(busstopsign);
+        distances[i].add(alpha * offsetradius + 10);
+        newObjects.add(busstopsign);
+        return busstop;
     }
 
     private Node generateRandomObject(float alpha, float radius, boolean direction) {
@@ -182,8 +219,8 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
     private Node placeObject(float alpha, float radius, boolean direction, Spatial object, String type) {
         Vector3f location = calculateLocation(alpha, radius);
         Quaternion rotation = calculateRotation(alpha, direction);
-        Node control = serverAppState.addRigidObservedSpatial(object, location, rotation, type, (Float) object.getUserData("weight"));
-        return control;
+        Node node = serverAppState.addRigidObservedSpatial(object, location, rotation, type, (Float) object.getUserData("weight"));
+        return node;
     }
 
     private Vector3f calculateLocation(float alpha, float radius) {

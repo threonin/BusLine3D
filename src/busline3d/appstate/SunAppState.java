@@ -15,6 +15,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Quad;
 import com.jme3.shadow.DirectionalLightShadowRenderer;
 import com.jme3.shadow.EdgeFilteringMode;
@@ -41,7 +42,11 @@ public class SunAppState extends AbstractAppState {
         super.initialize(stateManager, app);
         this.app = (SimpleApplication) app;
         this.rootNode = this.app.getRootNode();
-        control = this.rootNode.getChild("Bus").getControl(BusControl.class);
+        Spatial bus = this.rootNode.getChild("Bus");
+        control = bus.getControl(BusControl.class);
+        if (control == null) {
+            control = ((Node) bus).getChild("Bus").getControl(BusControl.class);
+        }
         AssetManager assetManager = this.app.getAssetManager();
 
         sunvector.set(0, -1f, 0).normalizeLocal();

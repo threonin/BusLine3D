@@ -71,7 +71,8 @@ public class StartMenuAppState extends AbstractAppState implements ScreenControl
         bulletAppState.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
         stateManager.attach(bulletAppState);
         stateManager.attach(new ServerAppState(port));
-        stateManager.attach(new BusServerAppState());
+        stateManager.attach(new DriveBusAppState());
+        stateManager.attach(new BusServerAppState(port == 0));
         stateManager.detach(this);
     }
 
