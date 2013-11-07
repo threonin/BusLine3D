@@ -166,11 +166,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
             }
         } else if (binding.equals("Reset")) {
             if (value) {
-                busControl.setPhysicsLocation(new Vector3f(-310, 0, 0));
-                busControl.setPhysicsRotation(new Matrix3f());
-                busControl.setLinearVelocity(Vector3f.ZERO);
-                busControl.setAngularVelocity(Vector3f.ZERO);
-                busControl.resetSuspension();
+                resetBus();
             } else {
             }
         }
@@ -195,5 +191,14 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
             }
         }
         return null;
+    }
+
+    public void resetBus() {
+        float radius = this.app.getStateManager().getState(WorldAppState.class).getRadius();
+        busControl.setPhysicsLocation(new Vector3f(-radius - 10, 0, 0));
+        busControl.setPhysicsRotation(new Matrix3f());
+        busControl.setLinearVelocity(Vector3f.ZERO);
+        busControl.setAngularVelocity(Vector3f.ZERO);
+        busControl.resetSuspension();
     }
 }

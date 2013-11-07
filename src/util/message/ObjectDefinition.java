@@ -44,6 +44,6 @@ public class ObjectDefinition {
 
     @Override
     public String toString() {
-        return "ObjectData{" + "name=" + name + ", type=" + type + ", translation=" + translation + ", rot=" + rot + '}';
+        return "ObjectDefinition{" + "name=" + name + ", type=" + type + ", translation=" + translation + ", rot=" + rot + '}';
     }
 }

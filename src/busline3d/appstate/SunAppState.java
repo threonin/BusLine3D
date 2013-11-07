@@ -34,6 +34,7 @@ public class SunAppState extends AbstractAppState {
     private Vector3f sunvector = new Vector3f();
     private boolean sunthere = true;
     private BusControl control;
+    private float sunradius;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -84,7 +85,7 @@ public class SunAppState extends AbstractAppState {
             sunlight.setColor(ColorRGBA.White.mult(daycos + 0.7f));
             sunvector.set(daysin, -daycos - 0.05f, 0).normalizeLocal();
             sunlight.setDirection(sunvector);
-            sun.setLocalTranslation(-daysin * 560, daycos * 560 - 150, 0);
+            sun.setLocalTranslation(-daysin * sunradius, daycos * sunradius - 150, 0);
             sun.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
         } else {
             if (sunthere) {
@@ -95,6 +96,10 @@ public class SunAppState extends AbstractAppState {
                 sunthere = false;
             }
         }
+    }
+
+    public void setRadius(float radius) {
+        this.sunradius = radius + 260;
     }
 
     @Override

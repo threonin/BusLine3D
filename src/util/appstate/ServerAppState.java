@@ -5,13 +5,13 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.collision.PhysicsCollisionEvent;
-import com.jme3.bullet.collision.PhysicsCollisionListener;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.network.ConnectionListener;
+import com.jme3.network.Filters;
 import com.jme3.network.HostedConnection;
+import com.jme3.network.Message;
 import com.jme3.network.Network;
 import com.jme3.network.Server;
 import com.jme3.scene.Node;
@@ -37,8 +37,11 @@ import util.message.ResetTimerMessage;
  *
  * @author Volker Schuller
  */
-public class ServerAppState extends AbstractAppState implements PhysicsCollisionListener, ConnectionListener {
+public class ServerAppState extends AbstractAppState implements ConnectionListener {
 
+    public final ConnectionListenerBehaviour defaultConnectionListener = new DefaultConnectionListenerBehaviour();
+    public final static int MAXOBJECTSPERMESSAGE = 300;
+    private ConnectionListenerBehaviour listener = defaultConnectionListener;
     private SimpleApplication app;
     private BulletAppState bulletAppState;
     private ConcurrentHashMap<String, Spatial> changedSpatials = new ConcurrentHashMap<String, Spatial>();
@@ -47,6 +50,7 @@ public class ServerAppState extends AbstractAppState implements PhysicsCollision
     private Server server;
     private int port;
     private int obnum;
+    private boolean suspendMovement;
 
     public ServerAppState(int port) {
         this.port = port;
@@ -57,8 +61,6 @@ public class ServerAppState extends AbstractAppState implements PhysicsCollision
         this.app = (SimpleApplication) app;
         this.rootNode = this.app.getRootNode();
         this.bulletAppState = stateManager.getState(BulletAppState.class);
-
-        bulletAppState.getPhysicsSpace().addCollisionListener(this);
 
         if (port > 0) {
             try {
@@ -74,13 +76,15 @@ public class ServerAppState extends AbstractAppState implements PhysicsCollision
         //bulletAppState.setDebugEnabled(true);
     }
 
-    public RigidBodyControl addRigidObservedSpatial(Spatial spatial, Vector3f location, Quaternion rotation, String type, float weight) {
+    public ObservedNode addRigidObservedSpatial(Spatial spatial, Vector3f location, Quaternion rotation, String type, float weight) {
         ObservedNode observedObject = addObservedSpatial(spatial, location, rotation, "Object" + obnum++, type);
         RigidBodyControl control = new RigidBodyControl(weight);
-        control.setEnabled(false);
         observedObject.addControl(control);
+        control.setSleepingThresholds(2, 2);
+        control.setFriction(1);
+        control.setApplyPhysicsLocal(true);
         bulletAppState.getPhysicsSpace().add(observedObject);
-        return control;
+        return observedObject;
     }
 
     public ObservedNode addObservedSpatial(Spatial spatial, Vector3f location, Quaternion rotation, String name, String type) {
@@ -92,22 +96,8 @@ public class ServerAppState extends AbstractAppState implements PhysicsCollision
         return observedObject;
     }
 
-    public void collision(PhysicsCollisionEvent event) {
-        if (event.getNodeB().getName().startsWith("Object")) {
-            if (!event.getNodeA().getName().startsWith("floor")) {
-                event.getNodeB().getControl(RigidBodyControl.class).setEnabled(true);
-                if (event.getNodeA().getName().startsWith("Object")) {
-                    event.getNodeA().getControl(RigidBodyControl.class).setEnabled(true);
-                }
-            }
-        } else if (event.getNodeA().getName().startsWith("Object")) {
-            if (!event.getNodeB().getName().startsWith("floor")) {
-                event.getNodeA().getControl(RigidBodyControl.class).setEnabled(true);
-                if (event.getNodeB().getName().startsWith("Object")) {
-                    event.getNodeB().getControl(RigidBodyControl.class).setEnabled(true);
-                }
-            }
-        }
+    public void clearChangedSpatials() {
+        changedSpatials.clear();
     }
 
     @Override
@@ -125,21 +115,77 @@ public class ServerAppState extends AbstractAppState implements PhysicsCollision
         super.cleanup();
     }
 
+    public void setConnectionListenerBehaviour(ConnectionListenerBehaviour listener) {
+        this.listener = listener;
+    }
+
     public void connectionAdded(Server server, HostedConnection conn) {
-        Logger.getLogger(ServerAppState.class.getName()).log(Level.INFO, "new connection");
-        this.app.getTimer().reset();
-        ArrayList<ObjectDefinition> objects = new ArrayList<ObjectDefinition>();
-        for (Spatial spatial : this.rootNode.getChildren()) {
-            if (spatial.getName().startsWith("Object")) {
-                objects.add(new ObjectDefinition(spatial.getName(), ((ObservedNode) spatial).getType(), spatial.getLocalTranslation(), spatial.getLocalRotation()));
-            }
-        }
-        conn.send(new DefinitionMessage(objects.toArray(new ObjectDefinition[objects.size()])).setReliable(true));
-        server.broadcast(new ResetTimerMessage().setReliable(true));
+        listener.connectionAdded(server, conn);
     }
 
     public void connectionRemoved(Server server, HostedConnection conn) {
-        Logger.getLogger(ServerAppState.class.getName()).log(Level.INFO, "connection lost");
+        listener.connectionRemoved(server, conn);
+    }
+
+    public void addObjects(Iterable<Spatial> objects) {
+        for (Message message : getDefinitionMessagesForObjects(objects)) {
+            server.broadcast(message);
+        }
+    }
+
+    public void addObjects(Iterable<Spatial> objects, HostedConnection exclude) {
+        for (Message message : getDefinitionMessagesForObjects(objects)) {
+            server.broadcast(Filters.notEqualTo(exclude), message);
+        }
+    }
+
+    public boolean getSuspendMovement() {
+        return suspendMovement;
+    }
+
+    public void setSuspendMovement(boolean suspendMovement) {
+        this.suspendMovement = suspendMovement;
+    }
+
+    private Iterable<Message> getDefinitionMessagesForObjects(Iterable<Spatial> objects) {
+        ArrayList<Message> messages = new ArrayList<Message>();
+        ArrayList<ObjectDefinition> definitions = new ArrayList<ObjectDefinition>();
+        int i = 1;
+        for (Spatial spatial : objects) {
+            if (spatial.getName().startsWith("Object")) {
+                definitions.add(new ObjectDefinition(spatial.getName(), ((ObservedNode) spatial).getType(), spatial.getLocalTranslation(), spatial.getLocalRotation()));
+                if (i++ >= MAXOBJECTSPERMESSAGE) {
+                    messages.add(new DefinitionMessage(definitions.toArray(new ObjectDefinition[definitions.size()])).setReliable(true));
+                    definitions = new ArrayList<ObjectDefinition>();
+                    i = 1;
+                }
+            }
+        }
+        if (i > 1) {
+            messages.add(new DefinitionMessage(definitions.toArray(new ObjectDefinition[definitions.size()])).setReliable(true));
+        }
+        return messages;
+    }
+
+    public interface ConnectionListenerBehaviour extends ConnectionListener {
+    };
+
+    private final class DefaultConnectionListenerBehaviour implements ConnectionListenerBehaviour {
+
+        public void connectionAdded(Server server, HostedConnection conn) {
+            setSuspendMovement(true);
+            Logger.getLogger(ServerAppState.class.getName()).log(Level.INFO, "new connection");
+            for (Message message : getDefinitionMessagesForObjects(rootNode.getChildren())) {
+                server.broadcast(message);
+            }
+            app.getTimer().reset();
+            server.broadcast(new ResetTimerMessage().setReliable(true));
+            setSuspendMovement(false);
+        }
+
+        public void connectionRemoved(Server server, HostedConnection conn) {
+            Logger.getLogger(ServerAppState.class.getName()).log(Level.INFO, "connection lost");
+        }
     }
 
     private final class NetworkSynchronizer implements Runnable {
@@ -147,15 +193,25 @@ public class ServerAppState extends AbstractAppState implements PhysicsCollision
         @Override
         public void run() {
             try {
+                if (suspendMovement || changedSpatials.isEmpty()) {
+                    return;
+                }
                 Iterator<Map.Entry<String, Spatial>> iterator = changedSpatials.entrySet().iterator();
                 float time = ServerAppState.this.app.getTimer().getTimeInSeconds();
-                ObjectData[] data = new ObjectData[changedSpatials.size()];
-                for (int i = 0; i < data.length; i++) {
-                    Map.Entry<String, Spatial> entry = iterator.next();
-                    data[i] = new ObjectData(entry.getKey(), entry.getValue().getLocalTranslation(), entry.getValue().getLocalRotation());
-                    changedSpatials.remove(entry.getKey());
+                int size = changedSpatials.size();
+                while (size > 0) {
+                    ObjectData[] data = new ObjectData[size > MAXOBJECTSPERMESSAGE ? MAXOBJECTSPERMESSAGE : size];
+                    for (int i = 0; i < data.length; i++) {
+                        Map.Entry<String, Spatial> entry = iterator.next();
+                        if (entry == null) {
+                            return;
+                        }
+                        data[i] = new ObjectData(entry.getKey(), entry.getValue().getLocalTranslation(), entry.getValue().getLocalRotation());
+                        changedSpatials.remove(entry.getKey());
+                    }
+                    server.broadcast(new MovementMessage(time, data));
+                    size -= MAXOBJECTSPERMESSAGE;
                 }
-                server.broadcast(new MovementMessage(time, data));
             } catch (Exception ex) {
                 Logger.getLogger(ServerAppState.class.getName()).log(Level.SEVERE, null, ex);
             }

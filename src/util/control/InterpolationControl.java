@@ -48,6 +48,12 @@ public class InterpolationControl extends AbstractControl {
         }
     }
 
+    public void reset() {
+        active = false;
+        nexttime = 0;
+        coming.clear();
+    }
+
     private void nextStep() {
         LocRotTime locrottime = coming.poll();
         if (locrottime == null) {

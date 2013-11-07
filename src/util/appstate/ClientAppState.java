@@ -36,6 +36,7 @@ public class ClientAppState extends AbstractAppState implements MessageListener<
     private Client client;
     private final static float LATENCY = 0.1f;
     private ConcurrentLinkedQueue<Spatial> newSpatials = new ConcurrentLinkedQueue<Spatial>();
+    private MessageHandler messageHandler;
     private String host;
     private int port;
 
@@ -77,10 +78,24 @@ public class ClientAppState extends AbstractAppState implements MessageListener<
     }
 
     public void messageReceived(Client source, Message message) {
+        if (messageHandler != null) {
+            if (messageHandler.messageReceived(source, message)) {
+                return;
+            }
+        }
         if (message instanceof MovementMessage) {
             MovementMessage mm = (MovementMessage) message;
             for (ObjectData data : mm.getData()) {
-                coming.get(data.getName()).add(new LocRotTime(mm.getServertime() + LATENCY, data.getTranslation(), data.getRot()));
+                ConcurrentLinkedQueue<LocRotTime> queue = coming.get(data.getName());
+                if (queue == null) {
+                    Logger.getLogger(ClientAppState.class.getName()).log(Level.WARNING, "Object not found {0}", data.getName());
+                    continue;
+                }
+                float servertime = mm.getServertime();
+                if (servertime > 0) {
+                    servertime += LATENCY;
+                }
+                queue.add(new LocRotTime(servertime, data.getTranslation(), data.getRot()));
             }
         } else if (message instanceof DefinitionMessage) {
             for (ObjectDefinition definition : ((DefinitionMessage) message).getDefinitions()) {
@@ -92,6 +107,12 @@ public class ClientAppState extends AbstractAppState implements MessageListener<
             }
         } else if (message instanceof ResetTimerMessage) {
             this.app.getTimer().reset();
+            for (Spatial spatial : this.rootNode.getChildren()) {
+                InterpolationControl control = spatial.getControl(InterpolationControl.class);
+                if (control != null) {
+                    control.reset();
+                }
+            }
         }
     }
 
@@ -99,5 +120,18 @@ public class ClientAppState extends AbstractAppState implements MessageListener<
         ConcurrentLinkedQueue<LocRotTime> queue = new ConcurrentLinkedQueue<LocRotTime>();
         coming.put(name, queue);
         object.addControl(new InterpolationControl(queue, this.app.getTimer()));
+    }
+
+    public MessageHandler getMessageHandler() {
+        return messageHandler;
+    }
+
+    public void setMessageHandler(MessageHandler messageHandler) {
+        this.messageHandler = messageHandler;
+    }
+
+    public interface MessageHandler {
+
+        public boolean messageReceived(Client source, Message message);
     }
 }
