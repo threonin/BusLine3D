@@ -150,6 +150,23 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
         this.app.getStateManager().getState(DriveBusAppState.class).resetBus();
     }
 
+    private int moveRandomObjects(int row, ArrayList<Node> rndObjectList, ObjectData[] allChangedNodes, int obnum) {
+        float offsetradius = radius + OFFSETS[row];
+        Iterator<Float> itDistances = distances[row].iterator();
+        for (Node spatial : rndObjectList) {
+            RigidBodyControl control = spatial.getControl(RigidBodyControl.class);
+            float alpha = itDistances.next() / offsetradius;
+            Vector3f location = calculateLocation(alpha, offsetradius);
+            control.setPhysicsLocation(location);
+            Quaternion rotation = calculateRotation(alpha, row <= 2);
+            control.setPhysicsRotation(rotation);
+            control.setLinearVelocity(Vector3f.ZERO);
+            control.setAngularVelocity(Vector3f.ZERO);
+            allChangedNodes[obnum++] = new ObjectData(spatial.getName(), location, rotation);
+        }
+        return obnum;
+    }
+
     private void broadcastChanges(ObjectData[] allChangedNodes, int i) {
         serverAppState.clearChangedSpatials();
         serverAppState.addObjects(addRandomObjects(), conn);
@@ -229,23 +246,6 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
 
     private Quaternion calculateRotation(float alpha, boolean direction) {
         return new Quaternion(new float[]{0, -alpha + (direction ? 1 : -1) * FastMath.PI / 2, 0});
-    }
-
-    private int moveRandomObjects(int row, ArrayList<Node> rndObjectList, ObjectData[] allChangedNodes, int obnum) {
-        float offsetradius = radius + OFFSETS[row];
-        Iterator<Float> itDistances = distances[row].iterator();
-        for (Node spatial : rndObjectList) {
-            RigidBodyControl control = spatial.getControl(RigidBodyControl.class);
-            float alpha = itDistances.next() / offsetradius;
-            Vector3f location = calculateLocation(alpha, offsetradius);
-            control.setPhysicsLocation(location);
-            Quaternion rotation = calculateRotation(alpha, row <= 2);
-            control.setPhysicsRotation(rotation);
-            control.setLinearVelocity(Vector3f.ZERO);
-            control.setAngularVelocity(Vector3f.ZERO);
-            allChangedNodes[obnum++] = new ObjectData(spatial.getName(), location, rotation);
-        }
-        return obnum;
     }
 
     public void connectionRemoved(Server server, HostedConnection conn) {

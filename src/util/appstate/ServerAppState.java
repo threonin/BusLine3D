@@ -176,7 +176,7 @@ public class ServerAppState extends AbstractAppState implements ConnectionListen
             setSuspendMovement(true);
             Logger.getLogger(ServerAppState.class.getName()).log(Level.INFO, "new connection");
             for (Message message : getDefinitionMessagesForObjects(rootNode.getChildren())) {
-                server.broadcast(message);
+                conn.send(message);
             }
             app.getTimer().reset();
             server.broadcast(new ResetTimerMessage().setReliable(true));
