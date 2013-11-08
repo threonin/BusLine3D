@@ -1,6 +1,7 @@
 package busline3d.appstate;
 
 import busline3d.message.RadiusMessage;
+import busline3d.message.WatchThisMessage;
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
@@ -110,5 +111,6 @@ public class StartMenuAppState extends AbstractAppState implements ScreenControl
         Serializer.registerClass(DefinitionMessage.class);
         Serializer.registerClass(ResetTimerMessage.class);
         Serializer.registerClass(RadiusMessage.class);
+        Serializer.registerClass(WatchThisMessage.class);
     }
 }

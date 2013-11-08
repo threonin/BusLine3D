@@ -102,6 +102,7 @@ public class ClientAppState extends AbstractAppState implements MessageListener<
                 Spatial object = (Spatial) app.getAssetManager().loadModel(definition.getType());
                 object.setLocalRotation(definition.getRot());
                 object.setLocalTranslation(definition.getTranslation());
+                object.setName(definition.getName());
                 observeSpatial(definition.getName(), object);
                 newSpatials.add(object);
             }
