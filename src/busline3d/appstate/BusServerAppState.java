@@ -144,10 +144,10 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
         } else {
             broadcastChanges(allChangedNodes, i);
         }
+        this.app.getStateManager().getState(DriveBusAppState.class).resetBus(firstStation ? 0 : (radius - CIRCUMFERENCEINCREMENT / (FastMath.PI * 2)));
         if (firstStation) {
             firstStation = false;
         }
-        this.app.getStateManager().getState(DriveBusAppState.class).resetBus();
     }
 
     private int moveRandomObjects(int row, ArrayList<Node> rndObjectList, ObjectData[] allChangedNodes, int obnum) {
@@ -195,7 +195,7 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
             float min = MINDIST / offsetradius;
             float diff = MAXDIST / offsetradius - min;
             float max = FastMath.PI * 2 - min;
-            float stationpos = (i == 3) ? ((max - startoffset) * FastMath.nextRandomFloat() + startoffset) : 10;
+            float stationpos = (i == 3) ? ((max - startoffset - diff) * FastMath.nextRandomFloat() + startoffset) : 10;
             for (float alpha = startoffset; alpha <= max; alpha += (FastMath.nextRandomFloat() * diff + min)) {
                 if (alpha >= stationpos) {
                     stationpos = 10;
@@ -227,7 +227,6 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
     }
 
     private Node generateRandomObject(float alpha, float radius, boolean direction) {
-        //String type = FastMath.rand.nextBoolean() ? "Models/tree1/tree1.j3o" : (FastMath.rand.nextBoolean() ? "Models/tree2/tree2.j3o" : (FastMath.rand.nextBoolean() ? "Models/house1/house1.j3o" : (FastMath.rand.nextBoolean() ? "Models/busstop_sign/busstop_sign.j3o" : "Models/busstop/busstop.j3o")));
         String type = RANDOMOBJECTS[FastMath.rand.nextInt(RANDOMOBJECTS.length)];
         Node object = (Node) app.getAssetManager().loadModel(type);
         return placeObject(alpha, radius, direction, object, type);

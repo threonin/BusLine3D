@@ -15,7 +15,6 @@ import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.math.FastMath;
-import com.jme3.math.Matrix3f;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Transform;
 import com.jme3.math.Vector3f;
@@ -30,6 +29,7 @@ import util.appstate.ServerAppState;
  */
 public class DriveBusAppState extends AbstractAppState implements ActionListener {
 
+    private static final int SPEED = 75;
     private SimpleApplication app;
     private VehicleControl busControl;
     private Node busNode;
@@ -39,6 +39,12 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
     private float steeringValue = 0;
     private float accelerationValue = 0;
     private Vector3f jumpForce = new Vector3f(0, 3000, 0);
+    private float radius;
+    private boolean autopilot;
+    private Vector3f autoLoc = new Vector3f();
+    private Quaternion autoRot = new Quaternion();
+    private float alphastep;
+    private float aktAlpha;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -56,7 +62,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         this.app.getFlyByCamera().setEnabled(false);
         ChaseCamera chaseCam = new ChaseCamera(this.app.getCamera(), busNode, this.app.getInputManager());
         chaseCam.setSmoothMotion(true);
-        chaseCam.setMinDistance(15);
+        chaseCam.setMinDistance(30);
         chaseCam.setDefaultDistance(40);
         chaseCam.setMaxDistance(100);
     }
@@ -164,11 +170,19 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
             } else {
                 busControl.brake(0f);
             }
-        } else if (binding.equals("Reset")) {
+        }
+        if (binding.equals("Reset")) {
             if (value) {
-                resetBus();
-            } else {
+                aktAlpha = resetBus(0);
+                alphastep = SPEED / radius;
+                busControl.setKinematic(true);
+                autopilot = true;
             }
+        } else if (autopilot) {
+            autopilot = false;
+            busControl.setKinematic(false);
+            autoLoc.normalizeLocal().multLocal(SPEED);
+            busControl.setLinearVelocity(new Vector3f(-autoLoc.z, 0, autoLoc.x));
         }
     }
 
@@ -193,12 +207,37 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         return null;
     }
 
-    public void resetBus() {
-        float radius = this.app.getStateManager().getState(WorldAppState.class).getRadius();
-        busControl.setPhysicsLocation(new Vector3f(-radius - 10, 0, 0));
-        busControl.setPhysicsRotation(new Matrix3f());
+    public float resetBus(float oldradius) {
+        radius = this.app.getStateManager().getState(WorldAppState.class).getRadius();
+        Vector3f unit = busControl.getPhysicsLocation().setY(0).normalizeLocal();
+        if (!unit.isUnitVector()) {
+            unit = Vector3f.UNIT_X.clone();
+        }
+        float alpha = FastMath.atan2(unit.z, unit.x);
+        if (oldradius > 0) {
+            alpha *= oldradius / radius;
+            unit.set(FastMath.cos(alpha), 0, FastMath.sin(alpha));
+            alphastep = SPEED / radius;
+        }
+        Quaternion rot = new Quaternion(new float[]{0, -alpha, 0});
+        unit.multLocal(radius + 11).setY(-5);
+        busControl.setPhysicsLocation(unit);
+        busControl.setPhysicsRotation(rot);
         busControl.setLinearVelocity(Vector3f.ZERO);
         busControl.setAngularVelocity(Vector3f.ZERO);
         busControl.resetSuspension();
+        return alpha;
+    }
+
+    @Override
+    public void update(float tpf) {
+        super.update(tpf);
+        if (autopilot) {
+            aktAlpha += alphastep * tpf;
+            autoLoc.set(FastMath.cos(aktAlpha) * (radius + 11), -5, FastMath.sin(aktAlpha) * (radius + 11));
+            busControl.setPhysicsLocation(autoLoc);
+            autoRot.fromAngles(0, -aktAlpha, 0);
+            busControl.setPhysicsRotation(autoRot);
+        }
     }
 }
