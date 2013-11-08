@@ -38,7 +38,6 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
     private final float brakeForce = 100.0f;
     private float steeringValue = 0;
     private float accelerationValue = 0;
-    private Vector3f jumpForce = new Vector3f(0, 3000, 0);
     private float radius;
     private boolean autopilot;
     private Vector3f autoLoc = new Vector3f();
@@ -162,9 +161,6 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
             }
             busControl.accelerate(accelerationValue);
         } else if (binding.equals("Space")) {
-            /*if (value) {
-             busControl.applyImpulse(jumpForce, Vector3f.ZERO);
-             }*/
             if (value) {
                 busControl.brake(brakeForce);
             } else {
@@ -181,8 +177,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         } else if (autopilot) {
             autopilot = false;
             busControl.setKinematic(false);
-            autoLoc.normalizeLocal().multLocal(SPEED);
-            busControl.setLinearVelocity(new Vector3f(-autoLoc.z, 0, autoLoc.x));
+            busControl.setLinearVelocity(new Vector3f(-FastMath.sin(aktAlpha) * SPEED, 0, FastMath.cos(aktAlpha) * SPEED));
         }
     }
 
