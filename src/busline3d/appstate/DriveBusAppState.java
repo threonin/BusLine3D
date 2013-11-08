@@ -215,7 +215,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
             alphastep = SPEED / radius;
         }
         Quaternion rot = new Quaternion(new float[]{0, -alpha, 0});
-        unit.multLocal(radius + 11).setY(-5);
+        unit.multLocal(radius + 3.75f).setY(-4.9f);
         busControl.setPhysicsLocation(unit);
         busControl.setPhysicsRotation(rot);
         busControl.setLinearVelocity(Vector3f.ZERO);
@@ -229,7 +229,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         super.update(tpf);
         if (autopilot) {
             aktAlpha += alphastep * tpf;
-            autoLoc.set(FastMath.cos(aktAlpha) * (radius + 11), -5, FastMath.sin(aktAlpha) * (radius + 11));
+            autoLoc.set(FastMath.cos(aktAlpha) * (radius + 3.75f), -4.9f, FastMath.sin(aktAlpha) * (radius + 3.75f));
             busControl.setPhysicsLocation(autoLoc);
             autoRot.fromAngles(0, -aktAlpha, 0);
             busControl.setPhysicsRotation(autoRot);
