@@ -44,7 +44,7 @@ public class WorldAppState extends AbstractAppState {
         super.initialize(stateManager, app);
         this.app = (SimpleApplication) app;
         this.rootNode = this.app.getRootNode();
-        font = this.app.getAssetManager().loadFont("Interface/Fonts/Default.fnt");
+        font = this.app.getAssetManager().loadFont("Interface/Fonts/FreeSans.fnt");
 
         initMaterials();
         addSky();
@@ -133,14 +133,14 @@ public class WorldAppState extends AbstractAppState {
             label.removeFromParent();
             label2.removeFromParent();
         }
-        float offset = font.getLineWidth(name) / 20;
+        float offset = font.getLineWidth(name) / 40;
         label = font.createLabel(name);
-        label.scale(0.1f);
+        label.scale(0.05f);
         label.setLocalTranslation(-offset, 9, 0);
         node.attachChild(label);
         label2 = font.createLabel(name);
         label2.rotate(0, FastMath.PI, 0);
-        label2.scale(0.1f);
+        label2.scale(0.05f);
         label2.setLocalTranslation(offset, 9, 0);
         node.attachChild(label2);
     }

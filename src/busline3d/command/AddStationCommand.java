@@ -33,6 +33,7 @@ public class AddStationCommand implements Command {
     private final static String[] RANDOMOBJECTS = new String[]{"Models/tree1/tree1.j3o", "Models/tree2/tree2.j3o", "Models/house1/house1.j3o"};
     private final static float MINDIST = 18;
     private final static float MAXDIST = 75;
+    private final static Iterator<String> STATIONNAMES = Arrays.asList("HTL Pinkafeld", "Oberwart", "Bad Tatzmansdorf", "Großpetersdorf", "Hartberg").iterator();
     private ServerAppState serverAppState;
     private WorldAppState worldAppState;
     private DriveBusAppState driveBusAppState;
@@ -135,12 +136,15 @@ public class AddStationCommand implements Command {
                 if (alpha >= stationpos) {
                     stationpos = 10;
                     Node station = generateStation(alpha, offsetradius, i, newObjects);
-                    if (!singleplayer) {
+                    String stationname = null;
+                    if (singleplayer) {
+                        stationname = STATIONNAMES.next();
+                    } else {
                         conn.setAttribute("station", station);
-                        String stationname = conn.getAttribute("stationname");
-                        if (stationname != null) {
-                            worldAppState.addCommand(new SetNameCommand(worldAppState, station, stationname));
-                        }
+                        stationname = conn.getAttribute("stationname");
+                    }
+                    if (stationname != null) {
+                        worldAppState.addCommand(new SetNameCommand(worldAppState, station, stationname));
                     }
                 } else {
                     Node object = generateRandomObject(alpha, offsetradius, offset < 0);
