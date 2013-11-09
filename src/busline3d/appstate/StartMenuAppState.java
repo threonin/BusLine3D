@@ -1,6 +1,7 @@
 package busline3d.appstate;
 
 import busline3d.message.RadiusMessage;
+import busline3d.message.SetNameMessage;
 import busline3d.message.WatchThisMessage;
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
@@ -86,10 +87,11 @@ public class StartMenuAppState extends AbstractAppState implements ScreenControl
         if (port != 0) {
             nifty.removeScreen("client");
             String host = screen.findNiftyControl("host", TextField.class).getRealText();
+            String stationname = screen.findNiftyControl("stationname", TextField.class).getRealText();
             initSerializer();
             stateManager.attach(new WorldAppState());
             stateManager.attach(new ClientAppState(host, port));
-            stateManager.attach(new BusClientAppState());
+            stateManager.attach(new BusClientAppState(stationname));
             stateManager.detach(this);
         }
     }
@@ -112,5 +114,6 @@ public class StartMenuAppState extends AbstractAppState implements ScreenControl
         Serializer.registerClass(ResetTimerMessage.class);
         Serializer.registerClass(RadiusMessage.class);
         Serializer.registerClass(WatchThisMessage.class);
+        Serializer.registerClass(SetNameMessage.class);
     }
 }

@@ -99,10 +99,11 @@ public class ClientAppState extends AbstractAppState implements MessageListener<
             }
         } else if (message instanceof DefinitionMessage) {
             for (ObjectDefinition definition : ((DefinitionMessage) message).getDefinitions()) {
-                Spatial object = (Spatial) app.getAssetManager().loadModel(definition.getType());
+                Spatial model = (Spatial) app.getAssetManager().loadModel(definition.getType());
+                Node object = new Node(definition.getName());
+                object.attachChild(model);
                 object.setLocalRotation(definition.getRot());
                 object.setLocalTranslation(definition.getTranslation());
-                object.setName(definition.getName());
                 observeSpatial(definition.getName(), object);
                 newSpatials.add(object);
             }
@@ -129,6 +130,10 @@ public class ClientAppState extends AbstractAppState implements MessageListener<
 
     public void setMessageHandler(MessageHandler messageHandler) {
         this.messageHandler = messageHandler;
+    }
+
+    public void sendMessage(Message message) {
+        client.send(message);
     }
 
     public interface MessageHandler {

@@ -12,6 +12,7 @@ import com.jme3.network.ConnectionListener;
 import com.jme3.network.Filters;
 import com.jme3.network.HostedConnection;
 import com.jme3.network.Message;
+import com.jme3.network.MessageListener;
 import com.jme3.network.Network;
 import com.jme3.network.Server;
 import com.jme3.scene.Node;
@@ -145,6 +146,10 @@ public class ServerAppState extends AbstractAppState implements ConnectionListen
 
     public void setSuspendMovement(boolean suspendMovement) {
         this.suspendMovement = suspendMovement;
+    }
+
+    public void addMessageListener(MessageListener<HostedConnection> listener) {
+        server.addMessageListener(listener);
     }
 
     private Iterable<Message> getDefinitionMessagesForObjects(Iterable<Spatial> objects) {

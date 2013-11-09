@@ -1,6 +1,10 @@
 package busline3d.appstate;
 
+import busline3d.command.SetNameCommand;
+import busline3d.command.SetRadiusCommand;
+import busline3d.command.WatchThisCommand;
 import busline3d.message.RadiusMessage;
+import busline3d.message.SetNameMessage;
 import busline3d.message.WatchThisMessage;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
@@ -21,11 +25,14 @@ import util.appstate.ClientAppState;
 public class BusClientAppState extends AbstractAppState implements ClientAppState.MessageHandler {
 
     private SimpleApplication app;
+    private WorldAppState worldAppState;
     private Node busNode;
-    private float radius;
     private CameraNode camNode;
-    private String watchThis;
-    private Node station;
+    private String stationname;
+
+    BusClientAppState(String stationname) {
+        this.stationname = stationname;
+    }
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -34,35 +41,30 @@ public class BusClientAppState extends AbstractAppState implements ClientAppStat
         this.app.getFlyByCamera().setEnabled(false);
         camNode = new CameraNode("Camera Node", this.app.getCamera());
         camNode.setControlDir(ControlDirection.SpatialToCamera);
-        camNode.setLocalTranslation(new Vector3f(0, 1, 6));
+        camNode.setLocalTranslation(new Vector3f(0, 5, 30));
         busNode = (Node) this.app.getRootNode().getChild("Bus");
+        worldAppState = stateManager.getState(WorldAppState.class);
         ClientAppState clientAppState = stateManager.getState(ClientAppState.class);
         clientAppState.observeSpatial("Bus", busNode);
         clientAppState.setMessageHandler(this);
+        clientAppState.sendMessage(new SetNameMessage(stationname));
     }
 
     @Override
     public void update(float tpf) {
         camNode.lookAt(busNode.getLocalTranslation(), Vector3f.UNIT_Y);
-        if (radius > 0) {
-            this.app.getStateManager().getState(WorldAppState.class).setRadius(radius);
-            radius = 0;
-        }
-        if (watchThis != null) {
-            station = (Node) app.getRootNode().getChild(watchThis);
-            if (station != null) {
-                station.attachChild(camNode);
-                watchThis = null;
-            }
-        }
     }
 
     public boolean messageReceived(Client source, Message message) {
         if (message instanceof RadiusMessage) {
-            this.radius = ((RadiusMessage) message).getRadius();
+            float radius = ((RadiusMessage) message).getRadius();
+            worldAppState.addCommand(new SetRadiusCommand(worldAppState, radius));
             return true;
         } else if (message instanceof WatchThisMessage) {
-            watchThis = ((WatchThisMessage) message).getName();
+            String name = ((WatchThisMessage) message).getName();
+            worldAppState.addCommand(new WatchThisCommand(app.getRootNode(), camNode, name));
+            worldAppState.addCommand(new SetNameCommand(app.getRootNode(), worldAppState, name, stationname));
+            return true;
         }
         return false;
     }

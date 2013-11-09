@@ -1,8 +1,9 @@
 package busline3d.appstate;
 
 import busline3d.command.AddStationCommand;
-import busline3d.command.Command;
+import busline3d.command.SetNameCommand;
 import busline3d.message.RadiusMessage;
+import busline3d.message.SetNameMessage;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
@@ -12,13 +13,14 @@ import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.network.HostedConnection;
+import com.jme3.network.Message;
+import com.jme3.network.MessageListener;
 import com.jme3.network.Server;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Dome;
 import java.util.ArrayList;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import util.appstate.ServerAppState;
 import util.appstate.ServerAppState.ConnectionListenerBehaviour;
 
@@ -26,21 +28,19 @@ import util.appstate.ServerAppState.ConnectionListenerBehaviour;
  *
  * @author Volker Schuller
  */
-public class BusServerAppState extends AbstractAppState implements ConnectionListenerBehaviour {
+public class BusServerAppState extends AbstractAppState implements ConnectionListenerBehaviour, MessageListener<HostedConnection> {
 
     private final static float CIRCUMFERENCEINCREMENT = 600;
     private SimpleApplication app;
     private ServerAppState serverAppState;
-    private Node rootNode;
+    private WorldAppState worldAppState;
     private float radius = CIRCUMFERENCEINCREMENT / (2 * FastMath.PI);
     private ArrayList<Node>[] randomObjects = new ArrayList[6];
     private ArrayList<Float>[] distances = new ArrayList[6];
-    private BulletAppState bulletAppState;
     private Spatial floor;
     private Geometry floorDome;
     private boolean firstStation = true;
     private boolean singleplayer;
-    private ConcurrentLinkedQueue<Command> commands = new ConcurrentLinkedQueue<Command>();
 
     public BusServerAppState(boolean singleplayer) {
         this.singleplayer = singleplayer;
@@ -53,14 +53,8 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         this.app = (SimpleApplication) app;
-        this.rootNode = this.app.getRootNode();
-        stateManager.getState(WorldAppState.class).setRadius(radius);
-        serverAppState = stateManager.getState(ServerAppState.class);
-        serverAppState.setConnectionListenerBehaviour(this);
-        bulletAppState = stateManager.getState(BulletAppState.class);
-
-        addDome();
-
+        worldAppState = stateManager.getState(WorldAppState.class);
+        worldAppState.setRadius(radius);
         if (singleplayer) {
             addAddStationCommand(null, null, 0);
             for (int i = 0; i < 4; i++) {
@@ -68,14 +62,20 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
                 radius += CIRCUMFERENCEINCREMENT / (FastMath.PI * 2);
                 addAddStationCommand(null, null, oldradius);
             }
+        } else {
+            serverAppState = stateManager.getState(ServerAppState.class);
+            serverAppState.setConnectionListenerBehaviour(this);
+            serverAppState.addMessageListener(this);
         }
+        addDome();
     }
 
     private void addAddStationCommand(Server server, HostedConnection conn, float oldradius) {
-        commands.add(new AddStationCommand(app.getStateManager(), app.getAssetManager(), server, conn, randomObjects, distances, singleplayer, radius, oldradius));
+        worldAppState.addCommand(new AddStationCommand(app.getStateManager(), app.getAssetManager(), server, conn, randomObjects, distances, singleplayer, radius, oldradius));
     }
 
     public void addDome() {
+        BulletAppState bulletAppState = this.app.getStateManager().getState(BulletAppState.class);
         if (floorDome != null) {
             bulletAppState.getPhysicsSpace().remove(floorDome);
         }
@@ -83,7 +83,7 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
             bulletAppState.getPhysicsSpace().remove(floor);
         }
         RigidBodyControl floorBody = new RigidBodyControl(0);
-        floor = rootNode.getChild("floor");
+        floor = app.getRootNode().getChild("floor");
         floor.addControl(floorBody);
         floorBody.setFriction(1);
         bulletAppState.getPhysicsSpace().add(floor);
@@ -107,16 +107,18 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
         firstStation = false;
     }
 
-    @Override
-    public void update(float tpf) {
-        super.update(tpf);
-        for (Command command : commands) {
-            command.execute();
-            commands.remove(command);
-        }
-    }
-
     public void connectionRemoved(Server server, HostedConnection conn) {
         serverAppState.defaultConnectionListener.connectionRemoved(server, conn);
+    }
+
+    public void messageReceived(HostedConnection source, Message message) {
+        if (message instanceof SetNameMessage) {
+            String name = ((SetNameMessage) message).getName();
+            source.setAttribute("stationname", name);
+            Node station = source.getAttribute("station");
+            if (station != null) {
+                worldAppState.addCommand(new SetNameCommand(worldAppState, station, name));
+            }
+        }
     }
 }

@@ -32,11 +32,13 @@
 
     <screen id="client" controller="busline3d.appstate.StartMenuAppState">
         <layer childLayout="center">
-            <panel width="150px" height="120px" align="center" valign="center" childLayout="vertical" backgroundColor="#55a5" padding="10">
+            <panel width="150px" height="150px" align="center" valign="center" childLayout="vertical" backgroundColor="#55a5" padding="10">
                 <text font="aurulent-sans-16.fnt" color="#ffff" text="Server:" />
                 <control id="host" name="textfield" text="localhost" />
                 <text font="aurulent-sans-16.fnt" color="#ffff" text="Port:" />
                 <control id="port" name="textfield" text="6143" />
+                <text font="aurulent-sans-16.fnt" color="#ffff" text="Stationsname:" />
+                <control id="stationname" name="textfield" />
                 <control id="server" align="center" name="button" label="Start" >
                     <interact onClick="client()"/>
                 </control>

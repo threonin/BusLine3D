@@ -61,7 +61,7 @@ public class AddStationCommand implements Command {
         busServerAppState = stateManager.getState(BusServerAppState.class);
     }
 
-    public void execute() {
+    public boolean execute() {
         if (oldradius != 0) {
             worldAppState.setRadius(radius);
             busServerAppState.addDome();
@@ -82,6 +82,7 @@ public class AddStationCommand implements Command {
             broadcastChanges(allChangedNodes, i);
         }
         driveBusAppState.resetBus(oldradius);
+        return true;
     }
 
     private int moveRandomObjects(int row, ArrayList<Node> rndObjectList, ObjectData[] allChangedNodes, int obnum) {
@@ -136,6 +137,10 @@ public class AddStationCommand implements Command {
                     Node station = generateStation(alpha, offsetradius, i, newObjects);
                     if (!singleplayer) {
                         conn.setAttribute("station", station);
+                        String stationname = conn.getAttribute("stationname");
+                        if (stationname != null) {
+                            worldAppState.addCommand(new SetNameCommand(worldAppState, station, stationname));
+                        }
                     }
                 } else {
                     Node object = generateRandomObject(alpha, offsetradius, offset < 0);

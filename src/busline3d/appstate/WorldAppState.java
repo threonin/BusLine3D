@@ -1,11 +1,13 @@
 package busline3d.appstate;
 
+import busline3d.command.Command;
 import busline3d.control.BusControl;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
+import com.jme3.font.BitmapFont;
 import com.jme3.light.AmbientLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
@@ -18,6 +20,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import util.mesh.RingMesh;
 
 /**
@@ -33,12 +36,15 @@ public class WorldAppState extends AbstractAppState {
     private Geometry floor;
     private Geometry street;
     private float radius;
+    private ConcurrentLinkedQueue<Command> commands = new ConcurrentLinkedQueue<Command>();
+    private BitmapFont font;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
         this.app = (SimpleApplication) app;
         this.rootNode = this.app.getRootNode();
+        font = this.app.getAssetManager().loadFont("Interface/Fonts/Default.fnt");
 
         initMaterials();
         addSky();
@@ -104,5 +110,38 @@ public class WorldAppState extends AbstractAppState {
                 this.app.getAssetManager(), "Textures/clouds/clouds.jpg", true);
         sky.setShadowMode(RenderQueue.ShadowMode.Off);
         rootNode.attachChild(sky);
+    }
+
+    public void addCommand(Command command) {
+        commands.add(command);
+    }
+
+    @Override
+    public void update(float tpf) {
+        super.update(tpf);
+        for (Command command : commands) {
+            if (command.execute()) {
+                commands.remove(command);
+            }
+        }
+    }
+
+    public void addLabel(Node node, String name) {
+        Spatial label = node.getChild("label1");
+        Spatial label2 = node.getChild("label2");
+        if (label != null) {
+            label.removeFromParent();
+            label2.removeFromParent();
+        }
+        float offset = font.getLineWidth(name) / 20;
+        label = font.createLabel(name);
+        label.scale(0.1f);
+        label.setLocalTranslation(-offset, 9, 0);
+        node.attachChild(label);
+        label2 = font.createLabel(name);
+        label2.rotate(0, FastMath.PI, 0);
+        label2.scale(0.1f);
+        label2.setLocalTranslation(offset, 9, 0);
+        node.attachChild(label2);
     }
 }
