@@ -27,5 +27,7 @@ public class BusLine3D extends SimpleApplication {
         nifty.fromXml("Interface/screen.xml", "start", startMenu);
         guiViewPort.addProcessor(niftyDisplay);
         flyCam.setEnabled(false);
+        this.setDisplayFps(false);
+        this.setDisplayStatView(false);
     }
 }

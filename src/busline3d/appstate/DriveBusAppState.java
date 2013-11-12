@@ -43,12 +43,15 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
     private final float brakeForce = 100.0f;
     private float steeringValue = 0;
     private float accelerationValue = 0;
+    private boolean showInfo;
+    private boolean pysicsDebug;
     private float radius;
     private boolean autopilot;
     private Vector3f autoLoc = new Vector3f();
     private Quaternion autoRot = new Quaternion();
     private float alphastep;
     private float aktAlpha;
+    private float speedStep = FastMath.pow(SPEED, 2) / 100;
     private float aktSpeed = SPEED;
     private boolean middleReached;
     private boolean centerReached;
@@ -136,12 +139,16 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         inputManager.addMapping("Downs", new KeyTrigger(KeyInput.KEY_DOWN));
         inputManager.addMapping("Space", new KeyTrigger(KeyInput.KEY_SPACE));
         inputManager.addMapping("Reset", new KeyTrigger(KeyInput.KEY_RETURN));
+        inputManager.addMapping("TogglePhysics", new KeyTrigger(KeyInput.KEY_P));
+        inputManager.addMapping("ToggleInfo", new KeyTrigger(KeyInput.KEY_I));
         inputManager.addListener(this, "Lefts");
         inputManager.addListener(this, "Rights");
         inputManager.addListener(this, "Ups");
         inputManager.addListener(this, "Downs");
         inputManager.addListener(this, "Space");
         inputManager.addListener(this, "Reset");
+        inputManager.addListener(this, "TogglePhysics");
+        inputManager.addListener(this, "ToggleInfo");
     }
 
     public void onAction(String binding, boolean value, float tpf) {
@@ -180,7 +187,18 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
                 busControl.brake(0f);
             }
         }
-        if (binding.equals("Reset")) {
+        if (binding.equals("ToggleInfo")) {
+            if (value) {
+                showInfo = !showInfo;
+                this.app.setDisplayFps(showInfo);
+                this.app.setDisplayStatView(showInfo);
+            }
+        } else if (binding.equals("TogglePhysics")) {
+            if (value) {
+                pysicsDebug = !pysicsDebug;
+                this.app.getStateManager().getState(BulletAppState.class).setDebugEnabled(pysicsDebug);
+            }
+        } else if (binding.equals("Reset")) {
             if (value) {
                 aktAlpha = resetBus(0);
                 alphastep = SPEED / radius;
@@ -260,7 +278,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
     }
 
     private void increaseSpeed(float tpf) {
-        aktSpeed += FastMath.pow(SPEED, 2) * tpf / 100;
+        aktSpeed += speedStep * tpf;
         if (aktSpeed > SPEED) {
             aktSpeed = SPEED;
         }
@@ -268,7 +286,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
     }
 
     private void decreaseSpeed(float tpf) {
-        aktSpeed -= FastMath.pow(SPEED, 2) * tpf / 100;
+        aktSpeed -= speedStep * tpf;
         if (aktSpeed < 0) {
             aktSpeed = 0;
             stopped = true;

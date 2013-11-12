@@ -74,7 +74,6 @@ public class ServerAppState extends AbstractAppState implements ConnectionListen
                 Logger.getLogger(ServerAppState.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        //bulletAppState.setDebugEnabled(true);
     }
 
     public ObservedNode addRigidObservedSpatial(Spatial spatial, Vector3f location, Quaternion rotation, String type, float weight) {
