@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nifty xmlns="http://nifty-gui.sourceforge.net/nifty-1.3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://nifty-gui.sourceforge.net/nifty-1.3.xsd http://nifty-gui.sourceforge.net/nifty-1.3.xsd">
+    <screen id="hud" controller="busline3d.appstate.HudAppState">
+        <layer id="buslayer" childLayout="center">
+            <panel id="bushud" height="172" width="423" align="right" valign="top" childLayout="absolute" visibleToMouse="true">
+                <effect>
+                    <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                    <onEndScreen name="move" mode="out" direction="top" length="300" startDelay="0" inherit="true"/>
+                </effect>
+                <image name="p1" filename="Interface/empty.png" x="7" y="8"></image>
+                <image name="p2" filename="Interface/empty.png" x="91" y="8"></image>
+                <image name="p3" filename="Interface/empty.png" x="174" y="8"></image>
+                <image name="p4" filename="Interface/empty.png" x="258" y="8"></image>
+                <image name="p5" filename="Interface/empty.png" x="340" y="8"></image>
+                <image name="p6" filename="Interface/empty.png" x="7" y="90"></image>
+                <image name="p7" filename="Interface/empty.png" x="91" y="90"></image>
+                <image name="p8" filename="Interface/empty.png" x="174" y="90"></image>
+                <image name="p9" filename="Interface/empty.png" x="258" y="90"></image>
+                <image name="p10" filename="Interface/empty.png" x="340" y="90"></image>
+                <image filename="Interface/bus_hud.png" x="0" y="0"></image>
+            </panel>
+        </layer>
+        <layer id="stationlayer" childLayout="center">
+            <panel id="stationhud" height="259" width="388" align="right" valign="bottom" childLayout="absolute" visibleToMouse="true">
+                <effect>
+                    <onStartScreen name="move" mode="in" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                    <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                </effect>
+                <image name="p1" filename="Interface/empty.png" x="16" y="90"></image>
+                <image name="p2" filename="Interface/empty.png" x="95" y="90"></image>
+                <image name="p3" filename="Interface/empty.png" x="174" y="90"></image>
+                <image name="p4" filename="Interface/empty.png" x="253" y="90"></image>
+                <image name="p5" filename="Interface/empty.png" x="16" y="168"></image>
+                <image name="p6" filename="Interface/empty.png" x="95" y="168"></image>
+                <image name="p7" filename="Interface/empty.png" x="174" y="168"></image>
+                <image name="p8" filename="Interface/empty.png" x="253" y="168"></image>
+                <image filename="Interface/busstop_hud.png" x="0" y="0"></image>
+            </panel>
+        </layer>
+    </screen>
+</nifty>

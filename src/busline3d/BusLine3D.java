@@ -11,6 +11,8 @@ import de.lessvoid.nifty.Nifty;
  */
 public class BusLine3D extends SimpleApplication {
 
+    private NiftyJmeDisplay niftyDisplay;
+
     public static void main(String[] args) {
         BusLine3D app = new BusLine3D();
         app.start();
@@ -21,7 +23,7 @@ public class BusLine3D extends SimpleApplication {
         setPauseOnLostFocus(false);
         StartMenuAppState startMenu = new StartMenuAppState();
         stateManager.attach(startMenu);
-        NiftyJmeDisplay niftyDisplay = new NiftyJmeDisplay(
+        niftyDisplay = new NiftyJmeDisplay(
                 assetManager, inputManager, audioRenderer, guiViewPort);
         Nifty nifty = niftyDisplay.getNifty();
         nifty.fromXml("Interface/screen.xml", "start", startMenu);
@@ -29,5 +31,9 @@ public class BusLine3D extends SimpleApplication {
         flyCam.setEnabled(false);
         this.setDisplayFps(false);
         this.setDisplayStatView(false);
+    }
+
+    public NiftyJmeDisplay getNiftyDisplay() {
+        return niftyDisplay;
     }
 }

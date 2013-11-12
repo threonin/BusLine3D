@@ -1,7 +1,7 @@
 package busline3d.appstate;
 
+import busline3d.BusLine3D;
 import com.jme3.app.Application;
-import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.bounding.BoundingBox;
@@ -26,6 +26,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import de.lessvoid.nifty.Nifty;
 import util.appstate.ServerAppState;
 
 /**
@@ -35,7 +36,7 @@ import util.appstate.ServerAppState;
 public class DriveBusAppState extends AbstractAppState implements ActionListener, PhysicsCollisionListener {
 
     private static final int SPEED = 100;
-    private SimpleApplication app;
+    private BusLine3D app;
     private VehicleControl busControl;
     private Node busNode;
     private final float accelerationForce = 1500.0f;
@@ -56,11 +57,13 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
     private boolean middleReached;
     private boolean centerReached;
     private boolean stopped;
+    private HudAppState hudAppState;
+    private Nifty nifty;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
-        this.app = (SimpleApplication) app;
+        this.app = (BusLine3D) app;
         ServerAppState serverAppState = stateManager.getState(ServerAppState.class);
         Node model = (Node) this.app.getRootNode().getChild("Bus");
         Vector3f location = model.getLocalTranslation().clone();
@@ -76,6 +79,9 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         chaseCam.setMinDistance(30);
         chaseCam.setDefaultDistance(40);
         chaseCam.setMaxDistance(100);
+        hudAppState = new HudAppState();
+        stateManager.attach(hudAppState);
+        nifty = this.app.getNiftyDisplay().getNifty();
     }
 
     private void initVehicleControl() {
@@ -305,12 +311,21 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
     public void ghostCollision(Spatial ghost) {
         if (ghost.getName().equals("middleGhost")) {
             middleReached = true;
+            if (centerReached) {
+                nifty.removeScreen("hud");
+            }
             centerReached = false;
         } else if (ghost.getName().equals("outerGhost")) {
             middleReached = false;
+            if (centerReached) {
+                nifty.removeScreen("hud");
+            }
             centerReached = false;
             stopped = false;
         } else {
+            if (!centerReached) {
+                nifty.fromXml("Interface/hud.xml", "hud", hudAppState);
+            }
             centerReached = true;
         }
     }
