@@ -17,12 +17,12 @@ public class RingMesh extends Mesh {
         boolean circle = (radius1 <= 0) && close;
         MeshData meshData;
         if (circle) {
-            MeshData meshData1 = circle(radius2, precision, repeat, true, 0);
-            MeshData meshData2 = circle(radius2, precision, repeat, false, height);
+            MeshData meshData1 = circle(radius2, precision, repeat, true, -height / 2);
+            MeshData meshData2 = circle(radius2, precision, repeat, false, height / 2);
             meshData = join(meshData1, meshData2, true, true);
         } else {
-            MeshData meshData1 = ring(radius1, radius2, precision, close, repeat, true, 0);
-            MeshData meshData2 = ring(radius1, radius2, precision, close, repeat, false, height);
+            MeshData meshData1 = ring(radius1, radius2, precision, close, repeat, true, -height / 2);
+            MeshData meshData2 = ring(radius1, radius2, precision, close, repeat, false, height / 2);
             meshData = join(meshData1, meshData2, false, close);
         }
         setBuffers(meshData);

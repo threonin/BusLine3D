@@ -6,7 +6,12 @@ import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.PhysicsSpace;
+import com.jme3.bullet.collision.PhysicsCollisionEvent;
+import com.jme3.bullet.collision.PhysicsCollisionListener;
+import com.jme3.bullet.collision.PhysicsCollisionObject;
 import com.jme3.bullet.collision.shapes.CollisionShape;
+import com.jme3.bullet.control.GhostControl;
 import com.jme3.bullet.control.VehicleControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.input.ChaseCamera;
@@ -27,9 +32,9 @@ import util.appstate.ServerAppState;
  *
  * @author Volker Schuller
  */
-public class DriveBusAppState extends AbstractAppState implements ActionListener {
+public class DriveBusAppState extends AbstractAppState implements ActionListener, PhysicsCollisionListener {
 
-    private static final int SPEED = 75;
+    private static final int SPEED = 100;
     private SimpleApplication app;
     private VehicleControl busControl;
     private Node busNode;
@@ -44,6 +49,10 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
     private Quaternion autoRot = new Quaternion();
     private float alphastep;
     private float aktAlpha;
+    private float aktSpeed = SPEED;
+    private boolean middleReached;
+    private boolean centerReached;
+    private boolean stopped;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -79,6 +88,8 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         //Create a vehicle control
         busControl = new VehicleControl(carHull, mass);
         busControl.setFriction(1);
+        busControl.setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_03);
+        busControl.setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_01 | PhysicsCollisionObject.COLLISION_GROUP_02);
         busNode.addControl(busControl);
 
         //Setting default values for wheels
@@ -113,7 +124,9 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         bbox = (BoundingBox) wheel_bl.getModelBound();
         busControl.addWheel(wheel_bl.getParent(), bbox.getCenter().add(0, -back_wheel_h, 0),
                 wheelDirection, wheelAxle, 0.2f, wheelRadius, false);
-        this.app.getStateManager().getState(BulletAppState.class).getPhysicsSpace().add(busControl);
+        PhysicsSpace physicsSpace = this.app.getStateManager().getState(BulletAppState.class).getPhysicsSpace();
+        physicsSpace.add(busControl);
+        physicsSpace.addCollisionListener(this);
     }
 
     private void setupKeys(InputManager inputManager) {
@@ -177,7 +190,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         } else if (autopilot) {
             autopilot = false;
             busControl.setKinematic(false);
-            busControl.setLinearVelocity(new Vector3f(-FastMath.sin(aktAlpha) * SPEED, 0, FastMath.cos(aktAlpha) * SPEED));
+            busControl.setLinearVelocity(new Vector3f(-FastMath.sin(aktAlpha) * aktSpeed, 0, FastMath.cos(aktAlpha) * aktSpeed));
         }
     }
 
@@ -212,7 +225,8 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         if (oldradius > 0) {
             alpha *= oldradius / radius;
             unit.set(FastMath.cos(alpha), 0, FastMath.sin(alpha));
-            alphastep = SPEED / radius;
+            aktSpeed = SPEED;
+            alphastep = aktSpeed / radius;
         }
         Quaternion rot = new Quaternion(new float[]{0, -alpha, 0});
         unit.multLocal(radius + 3.75f).setY(-4.9f);
@@ -228,11 +242,58 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
     public void update(float tpf) {
         super.update(tpf);
         if (autopilot) {
+            if (middleReached) {
+                if (stopped) {
+                    increaseSpeed(tpf);
+                } else {
+                    decreaseSpeed(tpf);
+                }
+            } else if (aktSpeed < SPEED) {
+                increaseSpeed(tpf);
+            }
             aktAlpha += alphastep * tpf;
             autoLoc.set(FastMath.cos(aktAlpha) * (radius + 3.75f), -4.9f, FastMath.sin(aktAlpha) * (radius + 3.75f));
             busControl.setPhysicsLocation(autoLoc);
             autoRot.fromAngles(0, -aktAlpha, 0);
             busControl.setPhysicsRotation(autoRot);
+        }
+    }
+
+    private void increaseSpeed(float tpf) {
+        aktSpeed += FastMath.pow(SPEED, 2) * tpf / 100;
+        if (aktSpeed > SPEED) {
+            aktSpeed = SPEED;
+        }
+        alphastep = aktSpeed / radius;
+    }
+
+    private void decreaseSpeed(float tpf) {
+        aktSpeed -= FastMath.pow(SPEED, 2) * tpf / 100;
+        if (aktSpeed < 0) {
+            aktSpeed = 0;
+            stopped = true;
+        }
+        alphastep = aktSpeed / radius;
+    }
+
+    public void collision(PhysicsCollisionEvent event) {
+        if (event.getObjectA() instanceof GhostControl) {
+            ghostCollision(event.getNodeA());
+        } else if (event.getObjectB() instanceof GhostControl) {
+            ghostCollision(event.getNodeB());
+        }
+    }
+
+    public void ghostCollision(Spatial ghost) {
+        if (ghost.getName().equals("middleGhost")) {
+            middleReached = true;
+            centerReached = false;
+        } else if (ghost.getName().equals("outerGhost")) {
+            middleReached = false;
+            centerReached = false;
+            stopped = false;
+        } else {
+            centerReached = true;
         }
     }
 }

@@ -6,6 +6,11 @@ import busline3d.appstate.WorldAppState;
 import busline3d.message.WatchThisMessage;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
+import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.collision.PhysicsCollisionObject;
+import com.jme3.bullet.collision.shapes.CylinderCollisionShape;
+import com.jme3.bullet.collision.shapes.MeshCollisionShape;
+import com.jme3.bullet.control.GhostControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
@@ -20,6 +25,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import util.appstate.ServerAppState;
 import static util.appstate.ServerAppState.MAXOBJECTSPERMESSAGE;
+import util.mesh.RingMesh;
 import util.message.MovementMessage;
 import util.message.ObjectData;
 
@@ -34,6 +40,7 @@ public class AddStationCommand implements Command {
     private final static float MINDIST = 18;
     private final static float MAXDIST = 75;
     private final static Iterator<String> STATIONNAMES = Arrays.asList("HTL Pinkafeld", "Oberwart", "Bad Tatzmansdorf", "Großpetersdorf", "Hartberg").iterator();
+    private BulletAppState bulletAppState;
     private ServerAppState serverAppState;
     private WorldAppState worldAppState;
     private DriveBusAppState driveBusAppState;
@@ -60,6 +67,7 @@ public class AddStationCommand implements Command {
         worldAppState = stateManager.getState(WorldAppState.class);
         driveBusAppState = stateManager.getState(DriveBusAppState.class);
         busServerAppState = stateManager.getState(BusServerAppState.class);
+        bulletAppState = stateManager.getState(BulletAppState.class);
     }
 
     public boolean execute() {
@@ -163,6 +171,28 @@ public class AddStationCommand implements Command {
         Node busstop = placeObject(alpha, offsetradius, true, busstopmodel, "Models/busstop/busstop.j3o");
         randomObjects[i].add(busstop);
         distances[i].add(alpha * offsetradius);
+        GhostControl innerGhost = new GhostControl(new CylinderCollisionShape(new Vector3f(20, 10, 0), 1));
+        innerGhost.setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
+        innerGhost.setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_03);
+        busstop.addControl(innerGhost);
+        bulletAppState.getPhysicsSpace().add(innerGhost);
+
+        GhostControl middleGhost = new GhostControl(new MeshCollisionShape(new RingMesh(42, 43, 10, true, 1, 40)));
+        middleGhost.setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
+        middleGhost.setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_03);
+        Node middle = new Node("middleGhost");
+        middle.addControl(middleGhost);
+        busstop.attachChild(middle);
+        bulletAppState.getPhysicsSpace().add(middleGhost);
+
+        GhostControl outerGhost = new GhostControl(new MeshCollisionShape(new RingMesh(59, 60, 10, true, 1, 40)));
+        outerGhost.setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
+        outerGhost.setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_03);
+        Node outer = new Node("outerGhost");
+        outer.addControl(outerGhost);
+        busstop.attachChild(outer);
+        bulletAppState.getPhysicsSpace().add(outerGhost);
+
         newObjects.add(busstop);
         Spatial busstopsignmodel = (Spatial) assetManager.loadModel("Models/busstop_sign/busstop_sign.j3o");
         Node busstopsign = placeObject(alpha + 10 / offsetradius, offsetradius, true, busstopsignmodel, "Models/busstop_sign/busstop_sign.j3o");
