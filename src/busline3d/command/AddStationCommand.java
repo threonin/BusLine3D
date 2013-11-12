@@ -144,7 +144,7 @@ public class AddStationCommand implements Command {
                 if (alpha >= stationpos) {
                     stationpos = 10;
                     Node station = generateStation(alpha, offsetradius, i, newObjects);
-                    String stationname = null;
+                    String stationname;
                     if (singleplayer) {
                         stationname = STATIONNAMES.next();
                     } else {

@@ -30,6 +30,7 @@ public class SetNameCommand implements Command {
     public boolean execute() {
         if (childName == null) {
             worldAppState.addLabel(pnode, nameToAssign);
+            pnode.setUserData("stationname", nameToAssign);
             return true;
         }
         Node node = (Node) pnode.getChild(childName);
@@ -37,6 +38,7 @@ public class SetNameCommand implements Command {
             return false;
         } else {
             worldAppState.addLabel(node, nameToAssign);
+            node.setUserData("stationname", nameToAssign);
             return true;
         }
     }

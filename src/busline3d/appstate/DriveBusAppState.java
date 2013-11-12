@@ -325,6 +325,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         } else {
             if (!centerReached) {
                 nifty.fromXml("Interface/hud.xml", "hud", hudAppState);
+                hudAppState.setStation(ghost);
             }
             centerReached = true;
         }
