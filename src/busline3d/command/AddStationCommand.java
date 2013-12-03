@@ -77,7 +77,9 @@ public class AddStationCommand implements Command {
         if (oldradius != 0) {
             worldAppState.setRadius(radius);
             busServerAppState.addDome();
-            server.broadcast(new RadiusMessage(radius).setReliable(true));
+            if (!singleplayer) {
+                server.broadcast(new RadiusMessage(radius).setReliable(true));
+            }
         }
         int numberofobjects = 0;
         for (ArrayList<Node> controlList : randomObjects) {
