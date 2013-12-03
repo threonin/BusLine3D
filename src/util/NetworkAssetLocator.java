@@ -17,7 +17,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import util.appstate.ClientAppState;
 
@@ -30,7 +29,12 @@ public class NetworkAssetLocator implements AssetLocator {
     private static ResampleOp resampleOp = new ResampleOp(75, 75);
     private static HashMap<String, byte[]> pictures = new HashMap<String, byte[]>();
     private static ClientAppState clientAppState;
+    private static final JFileChooser fileChooser = new JFileChooser();
     private String rootPath;
+
+    static {
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Bilder", "jpg", "jpeg", "gif", "png"));
+    }
 
     public NetworkAssetLocator() {
         resampleOp.setUnsharpenMask(AdvancedResizeOp.UnsharpenMask.VerySharp);
@@ -60,9 +64,6 @@ public class NetworkAssetLocator implements AssetLocator {
         new Thread() {
             @Override
             public void run() {
-                FileFilter filter = new FileNameExtensionFilter("Bilder", "jpg", "jpeg", "gif", "png");
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setFileFilter(filter);
                 if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                     try {
                         BufferedImage src = ImageIO.read(fileChooser.getSelectedFile());
