@@ -107,7 +107,6 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
             conn.send(new RadiusMessage(radius).setReliable(true));
         } else {
             radius += CIRCUMFERENCEINCREMENT / (FastMath.PI * 2);
-            server.broadcast(new RadiusMessage(radius).setReliable(true));
         }
         for (Entry<String, byte[]> entry : NetworkAssetLocator.getPictures().entrySet()) {
             conn.send(new NewPassengerMessage(entry.getKey(), entry.getValue()).setReliable(true));

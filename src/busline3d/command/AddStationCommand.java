@@ -4,6 +4,7 @@ import busline3d.appstate.BusServerAppState;
 import busline3d.appstate.DriveBusAppState;
 import busline3d.appstate.WorldAppState;
 import busline3d.control.PassengerControl;
+import busline3d.message.RadiusMessage;
 import busline3d.message.WatchThisMessage;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
@@ -76,6 +77,7 @@ public class AddStationCommand implements Command {
         if (oldradius != 0) {
             worldAppState.setRadius(radius);
             busServerAppState.addDome();
+            server.broadcast(new RadiusMessage(radius).setReliable(true));
         }
         int numberofobjects = 0;
         for (ArrayList<Node> controlList : randomObjects) {
@@ -129,7 +131,7 @@ public class AddStationCommand implements Command {
                 i += MAXOBJECTSPERMESSAGE;
             }
         }
-        conn.send(new WatchThisMessage(((Node) conn.getAttribute("station")).getName()));
+        conn.send(new WatchThisMessage(((Node) conn.getAttribute("station")).getName()).setReliable(true));
     }
 
     private Iterable<Spatial> addRandomObjects() {
