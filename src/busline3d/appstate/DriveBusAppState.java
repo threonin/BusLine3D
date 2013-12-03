@@ -82,6 +82,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         hudAppState = new HudAppState();
         stateManager.attach(hudAppState);
         nifty = this.app.getNiftyDisplay().getNifty();
+        nifty.fromXml("Interface/hud.xml", "empty", hudAppState);
     }
 
     private void initVehicleControl() {
@@ -312,19 +313,19 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         if (ghost.getName().equals("middleGhost")) {
             middleReached = true;
             if (centerReached) {
-                nifty.removeScreen("hud");
+                nifty.gotoScreen("empty");
             }
             centerReached = false;
         } else if (ghost.getName().equals("outerGhost")) {
             middleReached = false;
             if (centerReached) {
-                nifty.removeScreen("hud");
+                nifty.gotoScreen("empty");
             }
             centerReached = false;
             stopped = false;
         } else {
             if (!centerReached) {
-                nifty.fromXml("Interface/hud.xml", "hud", hudAppState);
+                nifty.gotoScreen("hud");
                 hudAppState.setStation(ghost);
             }
             centerReached = true;

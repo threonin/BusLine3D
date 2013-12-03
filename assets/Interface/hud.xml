@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <nifty xmlns="http://nifty-gui.sourceforge.net/nifty-1.3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://nifty-gui.sourceforge.net/nifty-1.3.xsd http://nifty-gui.sourceforge.net/nifty-1.3.xsd">
+    <screen id="empty" controller="busline3d.appstate.HudAppState">
+    </screen>
     <screen id="hud" controller="busline3d.appstate.HudAppState">
         <layer id="buslayer" childLayout="center">
             <panel id="bushud" height="172" width="423" align="right" valign="top" childLayout="absolute" visibleToMouse="true">
@@ -7,16 +9,76 @@
                     <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
                     <onEndScreen name="move" mode="out" direction="top" length="300" startDelay="0" inherit="true"/>
                 </effect>
-                <image name="p1" filename="Interface/empty.png" x="7" y="8"></image>
-                <image name="p2" filename="Interface/empty.png" x="91" y="8"></image>
-                <image name="p3" filename="Interface/empty.png" x="174" y="8"></image>
-                <image name="p4" filename="Interface/empty.png" x="258" y="8"></image>
-                <image name="p5" filename="Interface/empty.png" x="340" y="8"></image>
-                <image name="p6" filename="Interface/empty.png" x="7" y="90"></image>
-                <image name="p7" filename="Interface/empty.png" x="91" y="90"></image>
-                <image name="p8" filename="Interface/empty.png" x="174" y="90"></image>
-                <image name="p9" filename="Interface/empty.png" x="258" y="90"></image>
-                <image name="p10" filename="Interface/empty.png" x="340" y="90"></image>
+                <image filename="Interface/empty.png" x="7" y="8"></image>
+                <image id="b1" height="75" width="75" x="7" y="8">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
+                <image filename="Interface/empty.png" x="91" y="8"></image>
+                <image id="b2" height="75" width="75" x="91" y="8">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
+                <image filename="Interface/empty.png" x="174" y="8"></image>
+                <image id="b3" height="75" width="75" x="174" y="8">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
+                <image filename="Interface/empty.png" x="258" y="8"></image>
+                <image id="b4" height="75" width="75" x="258" y="8">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
+                <image filename="Interface/empty.png" x="340" y="8"></image>
+                <image id="b5" height="75" width="75" x="340" y="8">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
+                <image filename="Interface/empty.png" x="7" y="90"></image>
+                <image id="b6" height="75" width="75" x="7" y="90">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
+                <image filename="Interface/empty.png" x="91" y="90"></image>
+                <image id="b7" height="75" width="75" x="91" y="90">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
+                <image filename="Interface/empty.png" x="174" y="90"></image>
+                <image id="b8" height="75" width="75" x="174" y="90">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
+                <image filename="Interface/empty.png" x="258" y="90"></image>
+                <image id="b9" height="75" width="75" x="258" y="90">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
+                <image filename="Interface/empty.png" x="340" y="90"></image>
+                <image id="b10" height="75" width="75" x="340" y="90">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
                 <image filename="Interface/bus_hud.png" x="0" y="0"></image>
             </panel>
         </layer>
@@ -29,14 +91,62 @@
                 <panel x="0" y="35" height="40" width="290" childLayout="center">
                     <control id="stationname" width="100%" height="100%" name="label" font="/Interface/Fonts/FreeSans24.fnt" color="#ffffff"/>
                 </panel>
-                <image name="p1" filename="Interface/empty.png" x="16" y="90"></image>
-                <image name="p2" filename="Interface/empty.png" x="95" y="90"></image>
-                <image name="p3" filename="Interface/empty.png" x="174" y="90"></image>
-                <image name="p4" filename="Interface/empty.png" x="253" y="90"></image>
-                <image name="p5" filename="Interface/empty.png" x="16" y="168"></image>
-                <image name="p6" filename="Interface/empty.png" x="95" y="168"></image>
-                <image name="p7" filename="Interface/empty.png" x="174" y="168"></image>
-                <image name="p8" filename="Interface/empty.png" x="253" y="168"></image>
+                <image filename="Interface/empty.png" x="16" y="90"></image>
+                <image id="s1" height="75" width="75" x="16" y="90">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
+                <image filename="Interface/empty.png" x="95" y="90"></image>
+                <image id="s2" height="75" width="75" x="95" y="90">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
+                <image filename="Interface/empty.png" x="174" y="90"></image>
+                <image id="s3" height="75" width="75" x="174" y="90">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
+                <image filename="Interface/empty.png" x="253" y="90"></image>
+                <image id="s4" height="75" width="75" x="253" y="90">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
+                <image filename="Interface/empty.png" x="16" y="168"></image>
+                <image id="s5" height="75" width="75" x="16" y="168">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
+                <image filename="Interface/empty.png" x="95" y="168"></image>
+                <image id="s6" height="75" width="75" x="95" y="168">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
+                <image filename="Interface/empty.png" x="174" y="168"></image>
+                <image id="s7" height="75" width="75" x="174" y="168">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
+                <image filename="Interface/empty.png" x="253" y="168"></image>
+                <image id="s8" height="75" width="75" x="253" y="168">
+                    <effect>
+                        <onCustom customKey="onShow" name="fade" start="#0" end="#f" length="1000" />
+                        <onCustom customKey="onHide" name="fade" start="#f" end="#0" length="1000" neverStopRendering="true" />
+                    </effect>
+                </image>
                 <image filename="Interface/busstop_hud.png" x="0" y="0"></image>
             </panel>
         </layer>

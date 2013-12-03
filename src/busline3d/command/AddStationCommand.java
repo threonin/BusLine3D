@@ -3,6 +3,7 @@ package busline3d.command;
 import busline3d.appstate.BusServerAppState;
 import busline3d.appstate.DriveBusAppState;
 import busline3d.appstate.WorldAppState;
+import busline3d.control.PassengerControl;
 import busline3d.message.WatchThisMessage;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
@@ -40,6 +41,7 @@ public class AddStationCommand implements Command {
     private final static float MINDIST = 18;
     private final static float MAXDIST = 75;
     private final static Iterator<String> STATIONNAMES = Arrays.asList("HTL Pinkafeld", "Oberwart", "Bad Tatzmansdorf", "Großpetersdorf", "Hartberg").iterator();
+    private final static Iterator<String> PASSENGERNAMES = Arrays.asList("Merkel", "Obama", "Putin", "Al-Assad", "Faymann", "Spindelegger", "Lukaschenka", "Kim-Jong-Un", "Hollande", "Morales", "Abbas", "Mugabe", "Elizabeth_II", "Carl_XVI_Gustaf", "Juan_Carlos_I").iterator();
     private BulletAppState bulletAppState;
     private ServerAppState serverAppState;
     private WorldAppState worldAppState;
@@ -193,6 +195,13 @@ public class AddStationCommand implements Command {
         busstop.attachChild(outer);
         bulletAppState.getPhysicsSpace().add(outerGhost);
 
+        String[] passengers = new String[6];
+        if (singleplayer) {
+            passengers[0] = PASSENGERNAMES.next();
+            passengers[1] = PASSENGERNAMES.next();
+            passengers[2] = PASSENGERNAMES.next();
+        }
+        busstop.addControl(new PassengerControl(passengers));
         newObjects.add(busstop);
         Spatial busstopsignmodel = (Spatial) assetManager.loadModel("Models/busstop_sign/busstop_sign.j3o");
         Node busstopsign = placeObject(alpha + 10 / offsetradius, offsetradius, true, busstopsignmodel, "Models/busstop_sign/busstop_sign.j3o");
