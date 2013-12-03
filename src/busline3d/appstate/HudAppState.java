@@ -4,6 +4,7 @@ import busline3d.control.PassengerControl;
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
+import com.jme3.math.FastMath;
 import com.jme3.scene.Spatial;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.controls.Label;
@@ -13,6 +14,7 @@ import de.lessvoid.nifty.elements.render.ImageRenderer;
 import de.lessvoid.nifty.render.NiftyImage;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +31,7 @@ public class HudAppState extends AbstractAppState implements ScreenController {
     private Label stationname;
     private Element[] busImages = new Element[10];
     private boolean[] busPlaces = new boolean[10];
+    private String[] busPassengers = new String[10];
     private Element[] stationImages = new Element[10];
     private boolean[] stationPlaces = new boolean[8];
     private Map<String, NiftyImage> passengerImages = new HashMap<String, NiftyImage>();
@@ -62,34 +65,56 @@ public class HudAppState extends AbstractAppState implements ScreenController {
             return;
         }
         this.station = station;
-        stationname.setText((String) station.getUserData("stationname"));
-        String[] passengers = station.getControl(PassengerControl.class).getPassengers();
-        for (int i = 0; i < passengers.length; i++) {
-            if (passengers[i] != null) {
+        String name = (String) station.getUserData("stationname");
+        stationname.setText(name);
+        String[] stationPassengers = station.getControl(PassengerControl.class).getPassengers();
+        for (int i = 0; i < stationPassengers.length; i++) {
+            if (stationPassengers[i] != null) {
                 stationPlaces[i] = true;
-                if (!passengerImages.containsKey(passengers[i])) {
-                    passengerImages.put(passengers[i], nifty.createImage("Textures/passengers/" + passengers[i] + ".jpg", false));
+                if (!passengerImages.containsKey(stationPassengers[i])) {
+                    passengerImages.put(stationPassengers[i], nifty.createImage("Textures/passengers/" + stationPassengers[i] + ".jpg", false));
                 }
-                stationImages[i].getRenderer(ImageRenderer.class).setImage(passengerImages.get(passengers[i]));
-                if (insertPassengerIntoBus(passengers[i]) != -1) {
-                    removePassengerFromStation(i);
-                    passengers[i] = null;
-                } else {
-                    stationImages[i].stopEffectWithoutChildren(EffectEventId.onCustom);
-                }
+                stationImages[i].getRenderer(ImageRenderer.class).setImage(passengerImages.get(stationPassengers[i]));
             } else {
                 stationPlaces[i] = false;
                 stationImages[i].getRenderer(ImageRenderer.class).setImage(null);
             }
         }
+        ArrayList<Integer> exitPassengers = new ArrayList<Integer>();
+        for (int i = 0; i < busPlaces.length; i++) {
+            if (busPlaces[i] && FastMath.nextRandomInt(0, 3) == 0) {
+                int sn = insertPassengerIntoStation(busPassengers[i]);
+                if (sn == -1) {
+                    break;
+                }
+                stationPassengers[sn] = busPassengers[i];
+                exitPassengers.add(sn);
+                removePassengerFromBus(i);
+            }
+        }
+        for (int i = 0; i < stationPlaces.length; i++) {
+            if (stationPlaces[i] == true && (!exitPassengers.contains(i))) {
+                if (insertPassengerIntoBus(stationPassengers[i]) != -1) {
+                    removePassengerFromStation(i);
+                    stationPassengers[i] = null;
+                } else {
+                    stationImages[i].stopEffectWithoutChildren(EffectEventId.onCustom);
+                }
+            }
+        }
     }
 
     public int insertPassengerIntoBus(String passenger) {
-        return insertPassengerIntoArray(passenger, busPlaces, busImages);
+        int i = insertPassengerIntoArray(passenger, busPlaces, busImages);
+        if (i != -1) {
+            busPassengers[i] = passenger;
+        }
+        return i;
     }
 
     public void removePassengerFromBus(int i) {
         removePassengerFromArray(i, busPlaces, busImages);
+        busPassengers[i] = null;
     }
 
     public int insertPassengerIntoStation(String passenger) {

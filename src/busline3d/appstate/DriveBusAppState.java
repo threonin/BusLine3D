@@ -36,6 +36,7 @@ import util.appstate.ServerAppState;
 public class DriveBusAppState extends AbstractAppState implements ActionListener, PhysicsCollisionListener {
 
     private static final int SPEED = 100;
+    private final float STOPTIME = 2;
     private BusLine3D app;
     private VehicleControl busControl;
     private Node busNode;
@@ -56,7 +57,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
     private float aktSpeed = SPEED;
     private boolean middleReached;
     private boolean centerReached;
-    private boolean stopped;
+    private float stopped;
     private HudAppState hudAppState;
     private Nifty nifty;
 
@@ -268,10 +269,12 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         super.update(tpf);
         if (autopilot) {
             if (middleReached) {
-                if (stopped) {
+                if (stopped <= 0) {
                     increaseSpeed(tpf);
-                } else {
+                } else if (stopped > STOPTIME + 0.1f) {
                     decreaseSpeed(tpf);
+                } else {
+                    stopped -= tpf;
                 }
             } else if (aktSpeed < SPEED) {
                 increaseSpeed(tpf);
@@ -296,7 +299,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         aktSpeed -= speedStep * tpf;
         if (aktSpeed < 0) {
             aktSpeed = 0;
-            stopped = true;
+            stopped = STOPTIME;
         }
         alphastep = aktSpeed / radius;
     }
@@ -322,7 +325,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
                 nifty.gotoScreen("empty");
             }
             centerReached = false;
-            stopped = false;
+            stopped = STOPTIME + 1;
         } else {
             if (!centerReached) {
                 nifty.gotoScreen("hud");
