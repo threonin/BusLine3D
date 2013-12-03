@@ -2,6 +2,8 @@ package busline3d.appstate;
 
 import busline3d.command.AddStationCommand;
 import busline3d.command.SetNameCommand;
+import busline3d.control.PassengerControl;
+import busline3d.message.NewPassengerMessage;
 import busline3d.message.RadiusMessage;
 import busline3d.message.SetNameMessage;
 import com.jme3.app.Application;
@@ -12,6 +14,7 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
+import com.jme3.network.Filters;
 import com.jme3.network.HostedConnection;
 import com.jme3.network.Message;
 import com.jme3.network.MessageListener;
@@ -21,6 +24,8 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Dome;
 import java.util.ArrayList;
+import java.util.Map.Entry;
+import util.NetworkAssetLocator;
 import util.appstate.ServerAppState;
 import util.appstate.ServerAppState.ConnectionListenerBehaviour;
 
@@ -63,6 +68,7 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
                 addAddStationCommand(null, null, oldradius);
             }
         } else {
+            app.getAssetManager().registerLocator("Textures/passengers/", NetworkAssetLocator.class);
             serverAppState = stateManager.getState(ServerAppState.class);
             serverAppState.setConnectionListenerBehaviour(this);
             serverAppState.addMessageListener(this);
@@ -103,6 +109,9 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
             radius += CIRCUMFERENCEINCREMENT / (FastMath.PI * 2);
             server.broadcast(new RadiusMessage(radius).setReliable(true));
         }
+        for (Entry<String, byte[]> entry : NetworkAssetLocator.getPictures().entrySet()) {
+            conn.send(new NewPassengerMessage(entry.getKey(), entry.getValue()).setReliable(true));
+        }
         addAddStationCommand(server, conn, firstStation ? 0 : oldradius);
         firstStation = false;
     }
@@ -118,6 +127,20 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
             Node station = source.getAttribute("station");
             if (station != null) {
                 worldAppState.addCommand(new SetNameCommand(worldAppState, station, name));
+            }
+        } else if (message instanceof NewPassengerMessage) {
+            NewPassengerMessage npm = (NewPassengerMessage) message;
+            serverAppState.getServer().broadcast(Filters.notEqualTo(source), message);
+            NetworkAssetLocator.addPicture(npm.getName(), npm.getData());
+            Node station = source.getAttribute("station");
+            if (station != null) {
+                String[] passengers = station.getControl(PassengerControl.class).getPassengers();
+                for (int i = 0; i < passengers.length; i++) {
+                    if (passengers[i] == null) {
+                        passengers[i] = npm.getName();
+                        break;
+                    }
+                }
             }
         }
     }

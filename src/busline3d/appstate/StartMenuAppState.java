@@ -1,5 +1,6 @@
 package busline3d.appstate;
 
+import busline3d.message.NewPassengerMessage;
 import busline3d.message.RadiusMessage;
 import busline3d.message.SetNameMessage;
 import busline3d.message.WatchThisMessage;
@@ -91,7 +92,9 @@ public class StartMenuAppState extends AbstractAppState implements ScreenControl
             initSerializer();
             stateManager.attach(new WorldAppState());
             stateManager.attach(new ClientAppState(host, port));
-            stateManager.attach(new BusClientAppState(stationname));
+            BusClientAppState busClientAppState = new BusClientAppState(stationname);
+            stateManager.attach(busClientAppState);
+            nifty.fromXml("Interface/station_hud.xml", "station_hud", busClientAppState);
             stateManager.detach(this);
         }
     }
@@ -115,5 +118,6 @@ public class StartMenuAppState extends AbstractAppState implements ScreenControl
         Serializer.registerClass(RadiusMessage.class);
         Serializer.registerClass(WatchThisMessage.class);
         Serializer.registerClass(SetNameMessage.class);
+        Serializer.registerClass(NewPassengerMessage.class);
     }
 }

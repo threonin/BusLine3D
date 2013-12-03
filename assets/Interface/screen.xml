@@ -23,7 +23,7 @@
             <panel width="150px" height="90px" align="center" valign="center" childLayout="vertical" backgroundColor="#55a5" padding="10">
                 <text font="aurulent-sans-16.fnt" color="#ffff" text="Port:" />
                 <control id="port" name="textfield" text="6143" />
-                <control id="server" align="center" name="button" label="Start" >
+                <control align="center" name="button" label="Start" >
                     <interact onClick="server()"/>
                 </control>
             </panel>
@@ -39,7 +39,7 @@
                 <control id="port" name="textfield" text="6143" />
                 <text font="aurulent-sans-16.fnt" color="#ffff" text="Stationsname:" />
                 <control id="stationname" name="textfield" />
-                <control id="server" align="center" name="button" label="Start" >
+                <control align="center" name="button" label="Start" >
                     <interact onClick="client()"/>
                 </control>
             </panel>

@@ -147,6 +147,10 @@ public class ServerAppState extends AbstractAppState implements ConnectionListen
         this.suspendMovement = suspendMovement;
     }
 
+    public Server getServer() {
+        return server;
+    }
+
     public void addMessageListener(MessageListener<HostedConnection> listener) {
         server.addMessageListener(listener);
     }

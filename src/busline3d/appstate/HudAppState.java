@@ -44,7 +44,7 @@ public class HudAppState extends AbstractAppState implements ScreenController {
 
     public void bind(Nifty nifty, Screen screen) {
         this.nifty = nifty;
-        this.screen = nifty.getScreen("hud");;
+        this.screen = nifty.getScreen("hud");
         stationname = screen.findNiftyControl("stationname", Label.class);
         for (int i = 1; i <= 10; i++) {
             busImages[i - 1] = this.screen.findElementByName("b" + i);
