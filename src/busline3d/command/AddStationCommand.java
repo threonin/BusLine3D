@@ -195,7 +195,7 @@ public class AddStationCommand implements Command {
         busstop.attachChild(outer);
         bulletAppState.getPhysicsSpace().add(outerGhost);
 
-        String[] passengers = new String[6];
+        String[] passengers = new String[8];
         if (singleplayer) {
             passengers[0] = PASSENGERNAMES.next();
             passengers[1] = PASSENGERNAMES.next();

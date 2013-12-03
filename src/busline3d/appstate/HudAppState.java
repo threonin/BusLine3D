@@ -32,7 +32,7 @@ public class HudAppState extends AbstractAppState implements ScreenController {
     private Element[] busImages = new Element[10];
     private boolean[] busPlaces = new boolean[10];
     private String[] busPassengers = new String[10];
-    private Element[] stationImages = new Element[10];
+    private Element[] stationImages = new Element[8];
     private boolean[] stationPlaces = new boolean[8];
     private Map<String, NiftyImage> passengerImages = new HashMap<String, NiftyImage>();
 
