@@ -145,7 +145,7 @@ public class AddStationCommand implements Command {
             float min = MINDIST / offsetradius;
             float diff = MAXDIST / offsetradius - min;
             float max = FastMath.PI * 2 - min;
-            float stationpos = (i == 2) ? ((max - startoffset - diff) * FastMath.nextRandomFloat() + startoffset) : 10;
+            float stationpos = (i == 2) ? ((max - startoffset - diff - min / 2) * FastMath.nextRandomFloat() + startoffset + min) : 10;
             for (float alpha = startoffset; alpha <= max; alpha += (FastMath.nextRandomFloat() * diff + min)) {
                 if (alpha >= stationpos) {
                     stationpos = 10;
@@ -191,7 +191,7 @@ public class AddStationCommand implements Command {
         busstop.attachChild(middle);
         bulletAppState.getPhysicsSpace().add(middleGhost);
 
-        GhostControl outerGhost = new GhostControl(new MeshCollisionShape(new RingMesh(59, 60, 10, true, 1, 40)));
+        GhostControl outerGhost = new GhostControl(new MeshCollisionShape(new RingMesh(59, 60, 10, true, 1, 80)));
         outerGhost.setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
         outerGhost.setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_03);
         Node outer = new Node("outerGhost");
