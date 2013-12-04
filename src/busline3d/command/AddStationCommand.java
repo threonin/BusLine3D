@@ -20,8 +20,10 @@ import com.jme3.math.Vector3f;
 import com.jme3.network.Filters;
 import com.jme3.network.HostedConnection;
 import com.jme3.network.Server;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.shape.Quad;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -198,14 +200,25 @@ public class AddStationCommand implements Command {
         outer.addControl(outerGhost);
         busstop.attachChild(outer);
         bulletAppState.getPhysicsSpace().add(outerGhost);
-
-        String[] passengers = new String[8];
-        if (singleplayer) {
-            passengers[0] = PASSENGERNAMES.next();
-            passengers[1] = PASSENGERNAMES.next();
-            passengers[2] = PASSENGERNAMES.next();
+        Geometry[] geometries = new Geometry[8];
+        Quad quad = new Quad(1.5f, 1.5f);
+        for (int j = 0; j < 4; j++) {
+            geometries[j] = new Geometry(j + "_passenger", quad);
+            geometries[j].setLocalTranslation(j * 1.6f - 3.2f, 3.6f, 0.2f);
+            geometries[j].setMaterial(worldAppState.getGlass());
+            busstop.attachChild(geometries[j]);
+            geometries[j + 4] = new Geometry((j + 4) + "_passenger", quad);
+            geometries[j + 4].setLocalTranslation(j * 1.6f - 3.2f, 2f, 0.2f);
+            geometries[j + 4].setMaterial(worldAppState.getGlass());
+            busstop.attachChild(geometries[j + 4]);
         }
-        busstop.addControl(new PassengerControl(passengers));
+        PassengerControl passengerControl = new PassengerControl(geometries, worldAppState, true);
+        if (singleplayer) {
+            passengerControl.addPassenger(0, PASSENGERNAMES.next());
+            passengerControl.addPassenger(1, PASSENGERNAMES.next());
+            passengerControl.addPassenger(2, PASSENGERNAMES.next());
+        }
+        busstop.addControl(passengerControl);
         newObjects.add(busstop);
         Spatial busstopsignmodel = (Spatial) assetManager.loadModel("Models/busstop_sign/busstop_sign.j3o");
         Node busstopsign = placeObject(alpha + 10 / offsetradius, offsetradius, true, busstopsignmodel, "Models/busstop_sign/busstop_sign.j3o");

@@ -133,10 +133,11 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
             NetworkAssetLocator.addPicture(npm.getName(), npm.getData());
             Node station = source.getAttribute("station");
             if (station != null) {
-                String[] passengers = station.getControl(PassengerControl.class).getPassengers();
+                PassengerControl passengerControl = station.getControl(PassengerControl.class);
+                String[] passengers = passengerControl.getPassengers();
                 for (int i = 0; i < passengers.length; i++) {
                     if (passengers[i] == null) {
-                        passengers[i] = npm.getName();
+                        passengerControl.addPassenger(i, npm.getName());
                         break;
                     }
                 }

@@ -26,7 +26,7 @@ public class HudAppState extends AbstractAppState implements ScreenController {
 
     private Nifty nifty;
     private Screen screen;
-    private AppStateManager stateManager;
+    private WorldAppState worldAppState;
     private Spatial station;
     private Label stationname;
     private Element[] busImages = new Element[10];
@@ -39,7 +39,7 @@ public class HudAppState extends AbstractAppState implements ScreenController {
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
-        this.stateManager = stateManager;
+        this.worldAppState = stateManager.getState(WorldAppState.class);
     }
 
     public void bind(Nifty nifty, Screen screen) {
@@ -67,7 +67,8 @@ public class HudAppState extends AbstractAppState implements ScreenController {
         this.station = station;
         String name = (String) station.getUserData("stationname");
         stationname.setText(name);
-        String[] stationPassengers = station.getControl(PassengerControl.class).getPassengers();
+        PassengerControl stationControl = station.getControl(PassengerControl.class);
+        String[] stationPassengers = stationControl.getPassengers();
         for (int i = 0; i < stationPassengers.length; i++) {
             if (stationPassengers[i] != null) {
                 stationPlaces[i] = true;
@@ -87,7 +88,7 @@ public class HudAppState extends AbstractAppState implements ScreenController {
                 if (sn == -1) {
                     break;
                 }
-                stationPassengers[sn] = busPassengers[i];
+                stationControl.addPassenger(sn, busPassengers[i]);
                 exitPassengers.add(sn);
                 removePassengerFromBus(i);
             }
@@ -96,7 +97,7 @@ public class HudAppState extends AbstractAppState implements ScreenController {
             if (stationPlaces[i] == true && (!exitPassengers.contains(i))) {
                 if (insertPassengerIntoBus(stationPassengers[i]) != -1) {
                     removePassengerFromStation(i);
-                    stationPassengers[i] = null;
+                    stationControl.removePassenger(i);
                 } else {
                     stationImages[i].stopEffectWithoutChildren(EffectEventId.onCustom);
                 }
@@ -104,24 +105,26 @@ public class HudAppState extends AbstractAppState implements ScreenController {
         }
     }
 
-    public int insertPassengerIntoBus(String passenger) {
+    private int insertPassengerIntoBus(String passenger) {
         int i = insertPassengerIntoArray(passenger, busPlaces, busImages);
         if (i != -1) {
             busPassengers[i] = passenger;
+            worldAppState.getPassengerControl().addPassenger(i, passenger);
         }
         return i;
     }
 
-    public void removePassengerFromBus(int i) {
+    private void removePassengerFromBus(int i) {
         removePassengerFromArray(i, busPlaces, busImages);
         busPassengers[i] = null;
+        worldAppState.getPassengerControl().removePassenger(i);
     }
 
-    public int insertPassengerIntoStation(String passenger) {
+    private int insertPassengerIntoStation(String passenger) {
         return insertPassengerIntoArray(passenger, stationPlaces, stationImages);
     }
 
-    public void removePassengerFromStation(int i) {
+    private void removePassengerFromStation(int i) {
         removePassengerFromArray(i, stationPlaces, stationImages);
     }
 

@@ -27,6 +27,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import de.lessvoid.nifty.Nifty;
+import util.UtilFunctions;
 import util.appstate.ServerAppState;
 
 /**
@@ -77,7 +78,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         this.app.getFlyByCamera().setEnabled(false);
         ChaseCamera chaseCam = new ChaseCamera(this.app.getCamera(), busNode, this.app.getInputManager());
         chaseCam.setSmoothMotion(true);
-        chaseCam.setMinDistance(30);
+        chaseCam.setMinDistance(10);
         chaseCam.setDefaultDistance(40);
         chaseCam.setMaxDistance(100);
         hudAppState = new HudAppState();
@@ -93,7 +94,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         final float mass = 400;
 
         //Create a hull collision shape for the chassis
-        Geometry chasis = findGeom(busNode, "Chassis", false);
+        Geometry chasis = UtilFunctions.findGeom(busNode, "Chassis", false);
         CollisionShape carHull = CollisionShapeFactory.createDynamicMeshShape(chasis);
 
         //Create a vehicle control
@@ -112,7 +113,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         Vector3f wheelDirection = new Vector3f(0, -1, 0);
         Vector3f wheelAxle = new Vector3f(-1, 0, 0);
 
-        Geometry wheel_fr = findGeom(busNode, "Wheel RF", false);
+        Geometry wheel_fr = UtilFunctions.findGeom(busNode, "Wheel RF", false);
         wheel_fr.center();
         BoundingBox bbox = (BoundingBox) wheel_fr.getModelBound();
         float wheelRadius = bbox.getYExtent();
@@ -120,17 +121,17 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         float front_wheel_h = (wheelRadius * 1.9f) - 1.2f;
         busControl.addWheel(wheel_fr.getParent(), bbox.getCenter().add(0, -front_wheel_h, 0),
                 wheelDirection, wheelAxle, 0.2f, wheelRadius, true);
-        Geometry wheel_fl = findGeom(busNode, "Wheel LF", false);
+        Geometry wheel_fl = UtilFunctions.findGeom(busNode, "Wheel LF", false);
         wheel_fl.center();
         bbox = (BoundingBox) wheel_fl.getModelBound();
         busControl.addWheel(wheel_fl.getParent(), bbox.getCenter().add(0, -front_wheel_h, 0),
                 wheelDirection, wheelAxle, 0.2f, wheelRadius, true);
-        Geometry wheel_br = findGeom(busNode, "Wheel RB", false);
+        Geometry wheel_br = UtilFunctions.findGeom(busNode, "Wheel RB", false);
         wheel_br.center();
         bbox = (BoundingBox) wheel_br.getModelBound();
         busControl.addWheel(wheel_br.getParent(), bbox.getCenter().add(0, -back_wheel_h, 0),
                 wheelDirection, wheelAxle, 0.2f, wheelRadius, false);
-        Geometry wheel_bl = findGeom(busNode, "Wheel LB", false);
+        Geometry wheel_bl = UtilFunctions.findGeom(busNode, "Wheel LB", false);
         wheel_bl.center();
         bbox = (BoundingBox) wheel_bl.getModelBound();
         busControl.addWheel(wheel_bl.getParent(), bbox.getCenter().add(0, -back_wheel_h, 0),
@@ -218,27 +219,6 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
             busControl.setKinematic(false);
             busControl.setLinearVelocity(new Vector3f(-FastMath.sin(aktAlpha) * aktSpeed, 0, FastMath.cos(aktAlpha) * aktSpeed));
         }
-    }
-
-    private Geometry findGeom(Spatial spatial, String name, boolean found) {
-        if (spatial instanceof Node) {
-            Node node = (Node) spatial;
-            for (int i = 0; i < node.getQuantity(); i++) {
-                Spatial child = node.getChild(i);
-                if (found || (child.getName() != null && child.getName().startsWith(name))) {
-                    return findGeom(child, name, true);
-                }
-                Geometry result = findGeom(child, name, false);
-                if (result != null) {
-                    return result;
-                }
-            }
-        } else if (spatial instanceof Geometry) {
-            if (found || spatial.getName().startsWith(name)) {
-                return (Geometry) spatial;
-            }
-        }
-        return null;
     }
 
     public float resetBus(float oldradius) {

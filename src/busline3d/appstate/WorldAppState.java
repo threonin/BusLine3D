@@ -2,11 +2,13 @@ package busline3d.appstate;
 
 import busline3d.command.Command;
 import busline3d.control.BusControl;
+import busline3d.control.PassengerControl;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
+import com.jme3.bounding.BoundingBox;
 import com.jme3.font.BitmapFont;
 import com.jme3.light.AmbientLight;
 import com.jme3.material.Material;
@@ -18,9 +20,12 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Cylinder;
+import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import util.UtilFunctions;
 import util.mesh.RingMesh;
 
 /**
@@ -38,6 +43,9 @@ public class WorldAppState extends AbstractAppState {
     private float radius;
     private ConcurrentLinkedQueue<Command> commands = new ConcurrentLinkedQueue<Command>();
     private BitmapFont font;
+    private HashMap<String, Material> materialsForPassengers = new HashMap<String, Material>();
+    private Material glass;
+    private PassengerControl passengerControl;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -57,8 +65,36 @@ public class WorldAppState extends AbstractAppState {
         busNode.setName("Bus");
         rootNode.attachChild(busNode);
         busNode.addControl(new BusControl());
+        Geometry[] geometries = new Geometry[10];
+        BoundingBox bbox = (BoundingBox) UtilFunctions.findGeom(busNode, "LWindow 1", false).getModelBound();
+        Quad quad = new Quad(bbox.getZExtent() * 2, bbox.getYExtent() * 2);
+        Quaternion leftQuat = new Quaternion(new float[]{0, FastMath.PI / 2, 0});
+        geometries[0] = addWindow(busNode, leftQuat, "LWindow 1", quad, true);
+        geometries[1] = addWindow(busNode, leftQuat, "LWindow 2", quad, true);
+        geometries[2] = addWindow(busNode, leftQuat, "LWindow 3", quad, true);
+        geometries[3] = addWindow(busNode, leftQuat, "LWindow 4", quad, true);
+        geometries[4] = addWindow(busNode, leftQuat, "LWindow 5", quad, true);
+        Quaternion rightQuat = new Quaternion(new float[]{0, -FastMath.PI / 2, 0});
+        geometries[5] = addWindow(busNode, rightQuat, "RWindow 1", quad, false);
+        geometries[6] = addWindow(busNode, rightQuat, "RWindow 2", quad, false);
+        geometries[7] = addWindow(busNode, rightQuat, "RWindow 3", quad, false);
+        geometries[8] = addWindow(busNode, rightQuat, "RWindow 4", quad, false);
+        geometries[9] = addWindow(busNode, rightQuat, "RWindow 5", quad, false);
+        passengerControl = new PassengerControl(geometries, this, false);
+        busNode.addControl(passengerControl);
 
         this.app.getStateManager().attach(new SunAppState());
+    }
+
+    private Geometry addWindow(Node busNode, Quaternion rotation, String name, Quad quad, boolean left) {
+        Geometry oldwindow = UtilFunctions.findGeom(busNode, name, false);
+        BoundingBox bbox = (BoundingBox) oldwindow.getModelBound();
+        Geometry newGeom = new Geometry(name + "_new", quad);
+        newGeom.setMaterial(glass);
+        newGeom.setLocalRotation(rotation);
+        newGeom.setLocalTranslation(bbox.getCenter().add(left ? 0.01f : -0.01f, -bbox.getYExtent(), left ? bbox.getZExtent() : -bbox.getZExtent()));
+        oldwindow.getParent().attachChild(newGeom);
+        return newGeom;
     }
 
     private void initMaterials() {
@@ -74,6 +110,7 @@ public class WorldAppState extends AbstractAppState {
         streetMat.setColor("Ambient", ColorRGBA.White.mult(2));
         streetMat.setColor("Diffuse", ColorRGBA.White);
         streetMat.setTexture("DiffuseMap", streettex);
+        glass = assetManager.loadMaterial("Materials/Generated/bus-Glass.j3m");
     }
 
     public float getRadius() {
@@ -149,5 +186,27 @@ public class WorldAppState extends AbstractAppState {
         label2.scale(0.05f);
         label2.setLocalTranslation(offset, 9, 0);
         node.attachChild(label2);
+    }
+
+    public Material getMaterialForPassenger(String name) {
+        if (!materialsForPassengers.containsKey(name)) {
+            addMaterialForPassenger(name);
+        }
+        return materialsForPassengers.get(name);
+    }
+
+    private void addMaterialForPassenger(String name) {
+        AssetManager assetManager = this.app.getAssetManager();
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setTexture("ColorMap", assetManager.loadTexture("Textures/passengers/" + name + ".jpg"));
+        materialsForPassengers.put(name, mat);
+    }
+
+    public PassengerControl getPassengerControl() {
+        return passengerControl;
+    }
+
+    public Material getGlass() {
+        return glass;
     }
 }
