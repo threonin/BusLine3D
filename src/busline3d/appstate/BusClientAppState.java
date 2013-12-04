@@ -11,6 +11,10 @@ import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
+import com.jme3.input.InputManager;
+import com.jme3.input.KeyInput;
+import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.KeyTrigger;
 import com.jme3.math.Vector3f;
 import com.jme3.network.Client;
 import com.jme3.network.Message;
@@ -27,10 +31,11 @@ import util.appstate.ClientAppState;
  *
  * @author Volker Schuller
  */
-public class BusClientAppState extends AbstractAppState implements ClientAppState.MessageHandler, ScreenController {
+public class BusClientAppState extends AbstractAppState implements ActionListener, ClientAppState.MessageHandler, ScreenController {
 
     private SimpleApplication app;
     private WorldAppState worldAppState;
+    private boolean showInfo;
     private Node busNode;
     private CameraNode camNode;
     private String stationname;
@@ -57,6 +62,22 @@ public class BusClientAppState extends AbstractAppState implements ClientAppStat
         clientAppState.setMessageHandler(this);
         clientAppState.sendMessage(new SetNameMessage(stationname));
         NetworkAssetLocator.setClientAppState(clientAppState);
+        setupKeys(this.app.getInputManager());
+    }
+
+    private void setupKeys(InputManager inputManager) {
+        inputManager.addMapping("ToggleInfo", new KeyTrigger(KeyInput.KEY_I));
+        inputManager.addListener(this, "ToggleInfo");
+    }
+
+    public void onAction(String binding, boolean value, float tpf) {
+        if (binding.equals("ToggleInfo")) {
+            if (value) {
+                showInfo = !showInfo;
+                this.app.setDisplayFps(showInfo);
+                this.app.setDisplayStatView(showInfo);
+            }
+        }
     }
 
     @Override
