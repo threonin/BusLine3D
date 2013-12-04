@@ -106,8 +106,14 @@ public class WorldAppState extends AbstractAppState {
     }
 
     private void addSky() {
-        Spatial sky = SkyFactory.createSky(
-                this.app.getAssetManager(), "Textures/clouds/clouds.jpg", true);
+        AssetManager assetManager = this.app.getAssetManager();
+        Texture west = assetManager.loadTexture("Textures/clouds/west.jpg");
+        Texture east = assetManager.loadTexture("Textures/clouds/east.jpg");
+        Texture north = assetManager.loadTexture("Textures/clouds/north.jpg");
+        Texture south = assetManager.loadTexture("Textures/clouds/south.jpg");
+        Texture up = assetManager.loadTexture("Textures/clouds/up.jpg");
+        Texture down = assetManager.loadTexture("Textures/clouds/down.jpg");
+        Spatial sky = SkyFactory.createSky(assetManager, west, east, north, south, up, down);
         sky.setShadowMode(RenderQueue.ShadowMode.Off);
         rootNode.attachChild(sky);
     }
