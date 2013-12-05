@@ -66,7 +66,7 @@ public class NetworkAssetLocator implements AssetLocator {
                         BufferedImage src = ImageIO.read(fileChooser.getSelectedFile());
                         BufferedImage rescaled = resampleOp.filter(src, null);
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        ImageIO.write(rescaled, "JPEG", baos);
+                        ImageIO.write(rescaled, "png", baos);
                         baos.close();
                         String name = fileChooser.getSelectedFile().getName().split("\\.")[0];
                         byte[] data = baos.toByteArray();
