@@ -4,6 +4,7 @@ import busline3d.command.AddStationCommand;
 import busline3d.command.SetNameCommand;
 import busline3d.control.PassengerControl;
 import busline3d.message.NewPassengerMessage;
+import busline3d.message.PassengerBusMessage;
 import busline3d.message.RadiusMessage;
 import busline3d.message.SetNameMessage;
 import com.jme3.app.Application;
@@ -111,6 +112,13 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
         for (Entry<String, byte[]> entry : NetworkAssetLocator.getPictures().entrySet()) {
             conn.send(new NewPassengerMessage(entry.getKey(), entry.getValue()).setReliable(true));
         }
+        int i = 0;
+        for (String passenger : worldAppState.getPassengerControl().getPassengers()) {
+            if (passenger != null) {
+                conn.send(new PassengerBusMessage(i, passenger).setReliable(true));
+            }
+            i++;
+        }
         addAddStationCommand(server, conn, firstStation ? 0 : oldradius);
         firstStation = false;
     }
@@ -143,5 +151,9 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
                 }
             }
         }
+    }
+
+    public boolean getSingleplayer() {
+        return singleplayer;
     }
 }

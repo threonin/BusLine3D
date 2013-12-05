@@ -1,6 +1,8 @@
 package busline3d.command;
 
+import busline3d.appstate.BusClientAppState;
 import busline3d.appstate.WorldAppState;
+import busline3d.control.PassengerControl;
 import com.jme3.scene.Node;
 
 /**
@@ -13,6 +15,7 @@ public class SetNameCommand implements Command {
     private String childName;
     private String nameToAssign;
     private WorldAppState worldAppState;
+    private BusClientAppState busClientAppState;
 
     public SetNameCommand(WorldAppState worldAppState, Node node, String nameToAssign) {
         this.worldAppState = worldAppState;
@@ -20,9 +23,10 @@ public class SetNameCommand implements Command {
         this.nameToAssign = nameToAssign;
     }
 
-    public SetNameCommand(Node rootNode, WorldAppState worldAppState, String childName, String nameToAssign) {
+    public SetNameCommand(Node rootNode, WorldAppState worldAppState, BusClientAppState busClientAppState, String childName, String nameToAssign) {
         this.pnode = rootNode;
         this.worldAppState = worldAppState;
+        this.busClientAppState = busClientAppState;
         this.childName = childName;
         this.nameToAssign = nameToAssign;
     }
@@ -39,6 +43,9 @@ public class SetNameCommand implements Command {
         } else {
             worldAppState.addLabel(node, nameToAssign);
             node.setUserData("stationname", nameToAssign);
+            PassengerControl passengerControl = worldAppState.generatePassengerControlForStation(node);
+            node.addControl(passengerControl);
+            busClientAppState.setPassengerControl(passengerControl);
             return true;
         }
     }

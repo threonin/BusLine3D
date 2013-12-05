@@ -1,9 +1,13 @@
 package busline3d.appstate;
 
+import busline3d.command.PassengerStationCommand;
 import busline3d.command.SetNameCommand;
 import busline3d.command.SetRadiusCommand;
 import busline3d.command.WatchThisCommand;
+import busline3d.control.PassengerControl;
 import busline3d.message.NewPassengerMessage;
+import busline3d.message.PassengerBusMessage;
+import busline3d.message.PassengerStationMessage;
 import busline3d.message.RadiusMessage;
 import busline3d.message.SetNameMessage;
 import busline3d.message.WatchThisMessage;
@@ -25,6 +29,7 @@ import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
 import util.NetworkAssetLocator;
+import util.NetworkAssetLocator.NameCallback;
 import util.appstate.ClientAppState;
 
 /**
@@ -39,6 +44,7 @@ public class BusClientAppState extends AbstractAppState implements ActionListene
     private Node busNode;
     private CameraNode camNode;
     private String stationname;
+    private PassengerControl passengerControl;
     private Nifty nifty;
     private Screen screen;
 
@@ -93,12 +99,22 @@ public class BusClientAppState extends AbstractAppState implements ActionListene
         } else if (message instanceof WatchThisMessage) {
             String name = ((WatchThisMessage) message).getName();
             worldAppState.addCommand(new WatchThisCommand(app.getRootNode(), camNode, name));
-            worldAppState.addCommand(new SetNameCommand(app.getRootNode(), worldAppState, name, stationname));
+            worldAppState.addCommand(new SetNameCommand(app.getRootNode(), worldAppState, this, name, stationname));
             return true;
         } else if (message instanceof NewPassengerMessage) {
             NewPassengerMessage npm = (NewPassengerMessage) message;
             NetworkAssetLocator.addPicture(npm.getName(), npm.getData());
             return true;
+        } else if (message instanceof PassengerBusMessage) {
+            PassengerBusMessage pbm = (PassengerBusMessage) message;
+            if (pbm.getName() == null) {
+                worldAppState.getPassengerControl().removePassenger(pbm.getIndex());
+            } else {
+                worldAppState.getPassengerControl().addPassenger(pbm.getIndex(), pbm.getName());
+            }
+        } else if (message instanceof PassengerStationMessage) {
+            PassengerStationMessage psm = (PassengerStationMessage) message;
+            worldAppState.addCommand(new PassengerStationCommand(this, psm));
         }
         return false;
     }
@@ -115,6 +131,18 @@ public class BusClientAppState extends AbstractAppState implements ActionListene
     }
 
     public void newPassenger() {
-        NetworkAssetLocator.openDialog();
+        NetworkAssetLocator.openDialog(new NameCallback() {
+            public void returnName(String name) {
+                passengerControl.addPassenger(name);
+            }
+        });
+    }
+
+    public void setPassengerControl(PassengerControl passengerControl) {
+        this.passengerControl = passengerControl;
+    }
+
+    public PassengerControl getPassengerControl() {
+        return this.passengerControl;
     }
 }

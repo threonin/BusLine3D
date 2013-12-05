@@ -6,7 +6,6 @@ import com.jme3.math.FastMath;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Geometry;
-import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
 
 /**
@@ -44,6 +43,15 @@ public class PassengerControl extends AbstractControl {
         return geometries;
     }
 
+    public void addPassenger(String name) {
+        for (int i = 0; i < passengers.length; i++) {
+            if (passengers[i] == null) {
+                addPassenger(i, name);
+                return;
+            }
+        }
+    }
+
     public void addPassenger(int index, String name) {
         passengers[index] = name;
         Material material = worldAppState.getMaterialForPassenger(name);
@@ -59,11 +67,6 @@ public class PassengerControl extends AbstractControl {
         if (geometries2 != null) {
             geometries2[index].setMaterial(worldAppState.getGlass());
         }
-    }
-
-    @Override
-    public void setSpatial(Spatial spatial) {
-        super.setSpatial(spatial);
     }
 
     @Override

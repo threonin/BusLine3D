@@ -1,10 +1,14 @@
 package busline3d.appstate;
 
+import busline3d.control.HostedConnectionControl;
 import busline3d.control.PassengerControl;
+import busline3d.message.PassengerBusMessage;
+import busline3d.message.PassengerStationMessage;
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.math.FastMath;
+import com.jme3.network.HostedConnection;
 import com.jme3.scene.Spatial;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.controls.Label;
@@ -17,6 +21,7 @@ import de.lessvoid.nifty.screen.ScreenController;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import util.appstate.ServerAppState;
 
 /**
  *
@@ -27,6 +32,7 @@ public class HudAppState extends AbstractAppState implements ScreenController {
     private Nifty nifty;
     private Screen screen;
     private WorldAppState worldAppState;
+    private ServerAppState serverAppState;
     private Spatial station;
     private Label stationname;
     private Element[] busImages = new Element[10];
@@ -35,11 +41,14 @@ public class HudAppState extends AbstractAppState implements ScreenController {
     private Element[] stationImages = new Element[8];
     private boolean[] stationPlaces = new boolean[8];
     private Map<String, NiftyImage> passengerImages = new HashMap<String, NiftyImage>();
+    private boolean singleplayer;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
         this.worldAppState = stateManager.getState(WorldAppState.class);
+        this.serverAppState = stateManager.getState(ServerAppState.class);
+        this.singleplayer = stateManager.getState(BusServerAppState.class).getSingleplayer();
     }
 
     public void bind(Nifty nifty, Screen screen) {
@@ -68,6 +77,10 @@ public class HudAppState extends AbstractAppState implements ScreenController {
         String name = (String) station.getUserData("stationname");
         stationname.setText(name);
         PassengerControl stationControl = station.getControl(PassengerControl.class);
+        HostedConnection connection = null;
+        if (!singleplayer) {
+            connection = station.getControl(HostedConnectionControl.class).getConnection();
+        }
         String[] stationPassengers = stationControl.getPassengers();
         for (int i = 0; i < stationPassengers.length; i++) {
             if (stationPassengers[i] != null) {
@@ -89,6 +102,9 @@ public class HudAppState extends AbstractAppState implements ScreenController {
                     break;
                 }
                 stationControl.addPassenger(sn, busPassengers[i]);
+                if (!singleplayer) {
+                    connection.send(new PassengerStationMessage(sn, busPassengers[i]).setReliable(true));
+                }
                 exitPassengers.add(sn);
                 removePassengerFromBus(i);
             }
@@ -98,6 +114,9 @@ public class HudAppState extends AbstractAppState implements ScreenController {
                 if (insertPassengerIntoBus(stationPassengers[i]) != -1) {
                     removePassengerFromStation(i);
                     stationControl.removePassenger(i);
+                    if (!singleplayer) {
+                        connection.send(new PassengerStationMessage(i, null).setReliable(true));
+                    }
                 } else {
                     stationImages[i].stopEffectWithoutChildren(EffectEventId.onCustom);
                 }
@@ -110,6 +129,9 @@ public class HudAppState extends AbstractAppState implements ScreenController {
         if (i != -1) {
             busPassengers[i] = passenger;
             worldAppState.getPassengerControl().addPassenger(i, passenger);
+            if (!singleplayer) {
+                serverAppState.getServer().broadcast(new PassengerBusMessage(i, passenger).setReliable(true));
+            }
         }
         return i;
     }
@@ -118,6 +140,9 @@ public class HudAppState extends AbstractAppState implements ScreenController {
         removePassengerFromArray(i, busPlaces, busImages);
         busPassengers[i] = null;
         worldAppState.getPassengerControl().removePassenger(i);
+        if (!singleplayer) {
+            serverAppState.getServer().broadcast(new PassengerBusMessage(i, null).setReliable(true));
+        }
     }
 
     private int insertPassengerIntoStation(String passenger) {

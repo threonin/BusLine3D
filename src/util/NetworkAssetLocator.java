@@ -26,7 +26,7 @@ import util.appstate.ClientAppState;
  */
 public class NetworkAssetLocator implements AssetLocator {
 
-    private static ResampleOp resampleOp = new ResampleOp(75, 75);
+    private static final ResampleOp resampleOp = new ResampleOp(75, 75);
     private static HashMap<String, byte[]> pictures = new HashMap<String, byte[]>();
     private static ClientAppState clientAppState;
     private static final JFileChooser fileChooser = new JFileChooser();
@@ -34,9 +34,6 @@ public class NetworkAssetLocator implements AssetLocator {
 
     static {
         fileChooser.setFileFilter(new FileNameExtensionFilter("Bilder", "jpg", "jpeg", "gif", "png"));
-    }
-
-    public NetworkAssetLocator() {
         resampleOp.setUnsharpenMask(AdvancedResizeOp.UnsharpenMask.VerySharp);
     }
 
@@ -60,7 +57,7 @@ public class NetworkAssetLocator implements AssetLocator {
         return null;
     }
 
-    public static void openDialog() {
+    public static void openDialog(final NameCallback callback) {
         new Thread() {
             @Override
             public void run() {
@@ -77,12 +74,18 @@ public class NetworkAssetLocator implements AssetLocator {
                         if (clientAppState != null) {
                             clientAppState.sendMessage(new NewPassengerMessage(name, data));
                         }
+                        callback.returnName(name);
                     } catch (IOException ex) {
                         Logger.getLogger(NetworkAssetLocator.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             }
         }.start();
+    }
+
+    public interface NameCallback {
+
+        public void returnName(String name);
     }
 
     public static void addPicture(String name, byte[] data) {

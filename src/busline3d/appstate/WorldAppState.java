@@ -202,6 +202,22 @@ public class WorldAppState extends AbstractAppState {
         materialsForPassengers.put(name, mat);
     }
 
+    public PassengerControl generatePassengerControlForStation(Node busstop) {
+        Geometry[] geometries = new Geometry[8];
+        Quad quad = new Quad(1.5f, 1.5f);
+        for (int j = 0; j < 4; j++) {
+            geometries[j] = new Geometry(j + "_passenger", quad);
+            geometries[j].setLocalTranslation(j * 1.6f - 3.2f, 3.6f, 0.2f);
+            geometries[j].setMaterial(glass);
+            busstop.attachChild(geometries[j]);
+            geometries[j + 4] = new Geometry((j + 4) + "_passenger", quad);
+            geometries[j + 4].setLocalTranslation(j * 1.6f - 3.2f, 2f, 0.2f);
+            geometries[j + 4].setMaterial(glass);
+            busstop.attachChild(geometries[j + 4]);
+        }
+        return new PassengerControl(geometries, this, true);
+    }
+
     public PassengerControl getPassengerControl() {
         return passengerControl;
     }
