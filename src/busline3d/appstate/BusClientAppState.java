@@ -57,6 +57,7 @@ public class BusClientAppState extends AbstractAppState implements ActionListene
         super.initialize(stateManager, app);
         this.app = (SimpleApplication) app;
         this.app.getFlyByCamera().setEnabled(false);
+        this.app.getCamera().setFrustumFar(10000);
         app.getAssetManager().registerLocator("Textures/passengers/", NetworkAssetLocator.class);
         camNode = new CameraNode("Camera Node", this.app.getCamera());
         camNode.setControlDir(ControlDirection.SpatialToCamera);

@@ -81,6 +81,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         chaseCam.setMinDistance(10);
         chaseCam.setDefaultDistance(40);
         chaseCam.setMaxDistance(100);
+        this.app.getCamera().setFrustumFar(10000);
         hudAppState = new HudAppState();
         stateManager.attach(hudAppState);
         nifty = this.app.getNiftyDisplay().getNifty();
