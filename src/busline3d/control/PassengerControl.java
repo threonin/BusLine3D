@@ -1,6 +1,7 @@
 package busline3d.control;
 
 import busline3d.appstate.WorldAppState;
+import busline3d.command.SetMaterialCommand;
 import com.jme3.material.Material;
 import com.jme3.math.FastMath;
 import com.jme3.renderer.RenderManager;
@@ -55,6 +56,13 @@ public class PassengerControl extends AbstractControl {
     public void addPassenger(int index, String name) {
         passengers[index] = name;
         Material material = worldAppState.getMaterialForPassenger(name);
+        if (material == null) {
+            worldAppState.addCommand(new SetMaterialCommand(worldAppState, geometries[index], name));
+            if (geometries2 != null) {
+                worldAppState.addCommand(new SetMaterialCommand(worldAppState, geometries2[index], name));
+            }
+            return;
+        }
         geometries[index].setMaterial(material);
         if (geometries2 != null) {
             geometries2[index].setMaterial(material);

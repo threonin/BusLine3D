@@ -190,16 +190,21 @@ public class WorldAppState extends AbstractAppState {
 
     public Material getMaterialForPassenger(String name) {
         if (!materialsForPassengers.containsKey(name)) {
-            addMaterialForPassenger(name);
+            return addMaterialForPassenger(name);
         }
         return materialsForPassengers.get(name);
     }
 
-    private void addMaterialForPassenger(String name) {
+    private Material addMaterialForPassenger(String name) {
         AssetManager assetManager = this.app.getAssetManager();
+        Texture tex = assetManager.loadTexture("Textures/passengers/" + name + ".jpg");
+        if (tex == null) {
+            return null;
+        }
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setTexture("ColorMap", assetManager.loadTexture("Textures/passengers/" + name + ".jpg"));
+        mat.setTexture("ColorMap", tex);
         materialsForPassengers.put(name, mat);
+        return mat;
     }
 
     public PassengerControl generatePassengerControlForStation(Node busstop) {
