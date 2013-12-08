@@ -23,7 +23,7 @@
             <panel width="150px" height="90px" align="center" valign="center" childLayout="vertical" backgroundColor="#55a5" padding="10">
                 <text font="aurulent-sans-16.fnt" color="#ffff" text="Port:" />
                 <control id="port" name="textfield" text="6143" />
-                <control align="center" name="button" label="Start" >
+                <control id="startserver" align="center" name="button" label="Start" >
                     <interact onClick="server()"/>
                 </control>
             </panel>
@@ -39,9 +39,12 @@
                 <control id="port" name="textfield" text="6143" />
                 <text font="aurulent-sans-16.fnt" color="#ffff" text="Stationsname:" />
                 <control id="stationname" name="textfield" />
-                <control align="center" name="button" label="Start" >
+                <control id="startclient" align="center" name="button" label="Start" >
                     <interact onClick="client()"/>
                 </control>
+            </panel>
+            <panel width="100%" height="35px" align="center" valign="top" childLayout="center">
+                <control width="100%" height="100%" id="lblError" name="label" font="/Interface/Fonts/FreeSans24.fnt" color="#ff0000"/>
             </panel>
         </layer>
     </screen>

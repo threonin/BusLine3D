@@ -39,6 +39,7 @@ public class ClientAppState extends AbstractAppState implements MessageListener<
     private MessageHandler messageHandler;
     private String host;
     private int port;
+    private String error;
 
     public ClientAppState(String host, int port) {
         this.host = host;
@@ -56,6 +57,7 @@ public class ClientAppState extends AbstractAppState implements MessageListener<
             client.addMessageListener(this);
         } catch (IOException ex) {
             Logger.getLogger(ClientAppState.class.getName()).log(Level.SEVERE, null, ex);
+            error = ex.getLocalizedMessage();
         }
     }
 
@@ -134,6 +136,18 @@ public class ClientAppState extends AbstractAppState implements MessageListener<
 
     public void sendMessage(Message message) {
         client.send(message);
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public String getError() {
+        return error;
     }
 
     public interface MessageHandler {

@@ -56,6 +56,22 @@ public class BusClientAppState extends AbstractAppState implements ActionListene
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
         this.app = (SimpleApplication) app;
+        worldAppState = stateManager.getState(WorldAppState.class);
+        ClientAppState clientAppState = stateManager.getState(ClientAppState.class);
+        StartMenuAppState startMenuAppState = stateManager.getState(StartMenuAppState.class);
+        if (clientAppState.getError() != null) {
+            startMenuAppState.setClientData(clientAppState.getHost(), clientAppState.getPort(), stationname, clientAppState.getError());
+            nifty.removeScreen("station_hud");
+            stateManager.detach(this);
+            stateManager.detach(clientAppState);
+            stateManager.detach(worldAppState);
+            nifty.fromXml("Interface/screen.xml", "client", startMenuAppState);
+            return;
+        } else {
+            if (startMenuAppState != null) {
+                stateManager.detach(startMenuAppState);
+            }
+        }
         this.app.getFlyByCamera().setEnabled(false);
         this.app.getCamera().setFrustumFar(10000);
         app.getAssetManager().registerLocator("Textures/passengers/", NetworkAssetLocator.class);
@@ -63,8 +79,6 @@ public class BusClientAppState extends AbstractAppState implements ActionListene
         camNode.setControlDir(ControlDirection.SpatialToCamera);
         camNode.setLocalTranslation(new Vector3f(0, 5, 30));
         busNode = (Node) this.app.getRootNode().getChild("Bus");
-        worldAppState = stateManager.getState(WorldAppState.class);
-        ClientAppState clientAppState = stateManager.getState(ClientAppState.class);
         clientAppState.observeSpatial("Bus", busNode);
         clientAppState.setMessageHandler(this);
         clientAppState.sendMessage(new SetNameMessage(stationname));

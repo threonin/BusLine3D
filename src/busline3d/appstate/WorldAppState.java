@@ -40,12 +40,14 @@ public class WorldAppState extends AbstractAppState {
     private Material streetMat;
     private Geometry floor;
     private Geometry street;
+    private AmbientLight ambientLight;
     private float radius;
     private ConcurrentLinkedQueue<Command> commands = new ConcurrentLinkedQueue<Command>();
     private BitmapFont font;
     private HashMap<String, Material> materialsForPassengers = new HashMap<String, Material>();
     private Material glass;
     private PassengerControl passengerControl;
+    private SunAppState sunAppState = new SunAppState();
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -56,9 +58,9 @@ public class WorldAppState extends AbstractAppState {
 
         initMaterials();
         addSky();
-        AmbientLight al = new AmbientLight();
-        al.setColor(ColorRGBA.White.mult(0.05f));
-        rootNode.addLight(al);
+        ambientLight = new AmbientLight();
+        ambientLight.setColor(ColorRGBA.White.mult(0.05f));
+        rootNode.addLight(ambientLight);
         rootNode.setShadowMode(RenderQueue.ShadowMode.Cast);
 
         Node busNode = (Node) this.app.getAssetManager().loadModel("Models/bus/bus.j3o");
@@ -83,7 +85,15 @@ public class WorldAppState extends AbstractAppState {
         passengerControl = new PassengerControl(geometries, this, false);
         busNode.addControl(passengerControl);
 
-        this.app.getStateManager().attach(new SunAppState());
+        this.app.getStateManager().attach(sunAppState);
+    }
+
+    @Override
+    public void cleanup() {
+        rootNode.detachAllChildren();
+        rootNode.removeLight(ambientLight);
+        this.app.getStateManager().detach(sunAppState);
+        super.cleanup();
     }
 
     private Geometry addWindow(Node busNode, Quaternion rotation, String name, Quad quad, boolean left) {

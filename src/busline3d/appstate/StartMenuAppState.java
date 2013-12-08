@@ -12,6 +12,7 @@ import com.jme3.app.state.AppStateManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.network.serializing.Serializer;
 import de.lessvoid.nifty.Nifty;
+import de.lessvoid.nifty.controls.Label;
 import de.lessvoid.nifty.controls.TextField;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
@@ -34,6 +35,10 @@ public class StartMenuAppState extends AbstractAppState implements ScreenControl
     private Nifty nifty;
     private Screen screen;
     private AppStateManager stateManager;
+    private String host;
+    private int port;
+    private String stationname;
+    private String error;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -44,6 +49,12 @@ public class StartMenuAppState extends AbstractAppState implements ScreenControl
     public void bind(Nifty nifty, Screen screen) {
         this.nifty = nifty;
         this.screen = screen;
+        if (screen.getScreenId().equals("client") && host != null) {
+            screen.findNiftyControl("host", TextField.class).setText(host);
+            screen.findNiftyControl("port", TextField.class).setText(port + "");
+            screen.findNiftyControl("stationname", TextField.class).setText(stationname);
+            screen.findNiftyControl("lblError", Label.class).setText(error);
+        }
     }
 
     public void onStartScreen() {
@@ -62,7 +73,7 @@ public class StartMenuAppState extends AbstractAppState implements ScreenControl
     }
 
     public void server() {
-        int port = getPort();
+        getPort();
         if (port != 0) {
             nifty.removeScreen("server");
             initSerializer();
@@ -85,8 +96,15 @@ public class StartMenuAppState extends AbstractAppState implements ScreenControl
         nifty.gotoScreen("client");
     }
 
+    public void setClientData(String host, int port, String stationname, String error) {
+        this.host = host;
+        this.port = port;
+        this.stationname = stationname;
+        this.error = error;
+    }
+
     public void client() {
-        int port = getPort();
+        getPort();
         if (port != 0) {
             nifty.removeScreen("client");
             String host = screen.findNiftyControl("host", TextField.class).getRealText();
@@ -97,18 +115,15 @@ public class StartMenuAppState extends AbstractAppState implements ScreenControl
             BusClientAppState busClientAppState = new BusClientAppState(stationname);
             stateManager.attach(busClientAppState);
             nifty.fromXml("Interface/station_hud.xml", "station_hud", busClientAppState);
-            stateManager.detach(this);
         }
     }
 
-    private int getPort() {
-        int port = 0;
+    private void getPort() {
         try {
             port = Integer.parseInt(screen.findNiftyControl("port", TextField.class).getRealText());
         } catch (NumberFormatException ex) {
             Logger.getLogger(BusClientAppState.class.getName()).log(Level.SEVERE, "invalid number!");
         }
-        return port;
     }
 
     private void initSerializer() {
