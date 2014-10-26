@@ -1,4 +1,4 @@
-busLine3D
+BusLine3D
 =========
 
 Silly litte bus driving simulator I made as demo for HTL Pinkafeld. This is the second version as the first one was 2D and didn't allow driving the bus, only demo mode.
@@ -18,3 +18,5 @@ By dragging with the mouse you can change the view and with the mousewheel alter
 When you drive near a station passengers will randomly enter or leave the bus, you can also topple trees/stations/signs.
 The world is a disc and protected by a invisible dome so the bus cannot fall down.
 When a client joins the circular road will increase in circumference and trees and houses placed randomly, the new station will be placed with a random distance.
+
+Menu is in german, but it's not hard to figure out. If you don't want to compile yourself you can download the latest release here: https://github.com/threonin/BusLine3D/releases
