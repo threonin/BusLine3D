@@ -4,6 +4,7 @@
  */
 package util;
 
+import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.control.VehicleControl;
 import com.jme3.bullet.objects.PhysicsRigidBody;
@@ -20,6 +21,7 @@ public class ObservedNode extends Node {
     private String type;
     private PhysicsRigidBody rigidBody;
     private ConcurrentHashMap<String, Spatial> changedSpatials;
+    private boolean isCharacter;
 
     public ObservedNode(String name, ConcurrentHashMap<String, Spatial> changedSpatials, String type) {
         super(name);
@@ -34,12 +36,17 @@ public class ObservedNode extends Node {
     @Override
     protected void setTransformRefresh() {
         super.setTransformRefresh();
-        if (rigidBody == null) {
+        if (rigidBody == null && !isCharacter) {
             rigidBody = getControl(RigidBodyControl.class);
             if (rigidBody == null) {
                 rigidBody = getControl(VehicleControl.class);
+                if (rigidBody == null) {
+                    if (getControl(BetterCharacterControl.class) != null) {
+                        isCharacter = true;
+                    }
+                }
             }
-        } else if (rigidBody.isActive()) {
+        } else if (isCharacter || rigidBody.isActive()) {
             changedSpatials.put(name, this);
         }
     }

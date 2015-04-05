@@ -1,5 +1,6 @@
 package busline3d.appstate;
 
+import busline3d.message.AnimationMessage;
 import busline3d.message.NewPassengerMessage;
 import busline3d.message.PassengerBusMessage;
 import busline3d.message.PassengerStationMessage;
@@ -138,5 +139,6 @@ public class StartMenuAppState extends AbstractAppState implements ScreenControl
         Serializer.registerClass(NewPassengerMessage.class);
         Serializer.registerClass(PassengerBusMessage.class);
         Serializer.registerClass(PassengerStationMessage.class);
+        Serializer.registerClass(AnimationMessage.class);
     }
 }

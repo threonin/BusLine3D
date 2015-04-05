@@ -1,10 +1,12 @@
 package busline3d.appstate;
 
+import busline3d.command.AnimationCommand;
 import busline3d.command.PassengerStationCommand;
 import busline3d.command.SetNameCommand;
 import busline3d.command.SetRadiusCommand;
 import busline3d.command.WatchThisCommand;
 import busline3d.control.PassengerControl;
+import busline3d.message.AnimationMessage;
 import busline3d.message.NewPassengerMessage;
 import busline3d.message.PassengerBusMessage;
 import busline3d.message.PassengerStationMessage;
@@ -80,6 +82,10 @@ public class BusClientAppState extends AbstractAppState implements ActionListene
         camNode.setLocalTranslation(new Vector3f(0, 5, 30));
         busNode = (Node) this.app.getRootNode().getChild("Bus");
         clientAppState.observeSpatial("Bus", busNode);
+
+        Node hamster = (Node) this.app.getRootNode().getChild("Hamster");
+        clientAppState.observeSpatial("Hamster", hamster);
+
         clientAppState.setMessageHandler(this);
         clientAppState.sendMessage(new SetNameMessage(stationname));
         NetworkAssetLocator.setClientAppState(clientAppState);
@@ -130,6 +136,9 @@ public class BusClientAppState extends AbstractAppState implements ActionListene
         } else if (message instanceof PassengerStationMessage) {
             PassengerStationMessage psm = (PassengerStationMessage) message;
             worldAppState.addCommand(new PassengerStationCommand(this, psm));
+        } else if (message instanceof AnimationMessage) {
+            AnimationMessage anm = (AnimationMessage) message;
+            worldAppState.addCommand(new AnimationCommand(app.getRootNode(), anm.getObject(), anm.getAnimation(), anm.getSpeed()));
         }
         return false;
     }

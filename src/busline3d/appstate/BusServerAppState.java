@@ -2,6 +2,7 @@ package busline3d.appstate;
 
 import busline3d.command.AddStationCommand;
 import busline3d.command.SetNameCommand;
+import busline3d.control.HamsterControl;
 import busline3d.control.PassengerControl;
 import busline3d.message.NewPassengerMessage;
 import busline3d.message.PassengerBusMessage;
@@ -14,6 +15,8 @@ import com.jme3.app.state.AppStateManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
+import com.jme3.math.Transform;
 import com.jme3.math.Vector3f;
 import com.jme3.network.Filters;
 import com.jme3.network.HostedConnection;
@@ -75,6 +78,7 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
             serverAppState.addMessageListener(this);
         }
         addDome();
+        animateHamster();
     }
 
     private void addAddStationCommand(Server server, HostedConnection conn, float oldradius) {
@@ -99,6 +103,19 @@ public class BusServerAppState extends AbstractAppState implements ConnectionLis
         floorDome.setLocalTranslation(0, -5, 0);
         floorDome.addControl(new RigidBodyControl(0));
         bulletAppState.getPhysicsSpace().add(floorDome);
+    }
+
+    private void animateHamster() {
+        Node hamster = (Node) this.app.getRootNode().getChild("Hamster");
+        if (!singleplayer) {
+            Vector3f location = hamster.getLocalTranslation().clone();
+            Quaternion rotation = hamster.getLocalRotation().clone();
+            hamster.removeFromParent();
+            hamster.setLocalTransform(Transform.IDENTITY);
+            hamster = serverAppState.addObservedSpatial(hamster, location, rotation, "Hamster", "");
+        }
+        BulletAppState bulletAppState = this.app.getStateManager().getState(BulletAppState.class);
+        hamster.addControl(new HamsterControl(bulletAppState, serverAppState));
     }
 
     public void connectionAdded(Server server, HostedConnection conn) {
