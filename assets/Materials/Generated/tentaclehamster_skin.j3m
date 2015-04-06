@@ -9,8 +9,8 @@ Material MyMaterial : Common/MatDefs/Light/Lighting.j3md {
         Ambient : 0.0 0.0 0.0 1.0
         Shininess : 20.0
         WardIso : false
-        SpecularMap : Flip Repeat Textures/tentaclehamster/tentaclehamster_specular.jpg
         NormalMap : Flip Repeat Textures/tentaclehamster/tentaclehamster_normals.jpg
+        SpecularMap : Flip Repeat Textures/tentaclehamster/tentaclehamster_specular.jpg
     }
     AdditionalRenderState {
       FaceCull Back
