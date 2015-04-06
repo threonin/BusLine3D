@@ -28,7 +28,7 @@ public class AnimationCommand implements Command {
         if (node == null) {
             return false;
         }
-        node = (Node) node.getChild(object);
+        node = (Node) ((Node) node.getChild(0)).getChild(0);
         AnimControl anim = node.getControl(AnimControl.class);
 
         AnimChannel channel;

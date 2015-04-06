@@ -85,12 +85,6 @@ public class WorldAppState extends AbstractAppState {
         passengerControl = new PassengerControl(geometries, this, false);
         busNode.addControl(passengerControl);
 
-        Node hamster = (Node) this.app.getAssetManager().loadModel("Models/tentaclehamster/tentaclehamster.j3o");
-        hamster.setName("Hamster");
-        hamster.setLocalTranslation(0, 30, 0);
-        hamster.setLocalScale(2);
-        rootNode.attachChild(hamster);
-
         this.app.getStateManager().attach(sunAppState);
     }
 

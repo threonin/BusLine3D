@@ -1,7 +1,6 @@
 package busline3d.control;
 
 import busline3d.message.AnimationMessage;
-import busline3d.message.PassengerBusMessage;
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.AnimEventListener;
@@ -28,20 +27,23 @@ public class HamsterControl extends AbstractControl implements AnimEventListener
     private BulletAppState bulletAppState;
     private ServerAppState serverAppState;
     private BetterCharacterControl physicsCharacter;
-    private Vector3f viewDirection = new Vector3f(0, 0, 1);
+    private Vector3f viewDirection;
     private AnimChannel channel;
     private Node hamster;
     private float brownNoise;
+    private String name;
 
-    public HamsterControl(BulletAppState bulletAppState, ServerAppState serverAppState) {
+    public HamsterControl(BulletAppState bulletAppState, ServerAppState serverAppState, String name) {
         this.bulletAppState = bulletAppState;
         this.serverAppState = serverAppState;
+        this.name = name;
     }
 
     @Override
     public void setSpatial(Spatial spatial) {
         super.setSpatial(spatial);
         hamster = (Node) spatial;
+        viewDirection = hamster.getLocalRotation().mult(new Vector3f(0, 0, 1));
         Node hamsternode = (Node) hamster.getChild("Hamster");
         if (hamsternode.getChild("Hamster") instanceof Node) {
             hamsternode = (Node) hamsternode.getChild("Hamster");
@@ -49,7 +51,7 @@ public class HamsterControl extends AbstractControl implements AnimEventListener
         AnimControl anim = hamsternode.getControl(AnimControl.class);
         anim.addListener(this);
         channel = anim.createChannel();
-        playAnim("walk");
+        playAnim("walk", 1);
         physicsCharacter = hamster.getControl(BetterCharacterControl.class);
         if (physicsCharacter == null) {
             physicsCharacter = new BetterCharacterControl(7f, 20f, 1000f);
@@ -59,11 +61,12 @@ public class HamsterControl extends AbstractControl implements AnimEventListener
         if (bulletAppState != null) {
             bulletAppState.getPhysicsSpace().add(physicsCharacter);
         }
+        physicsCharacter.setViewDirection(viewDirection);
     }
 
     @Override
     public Control cloneForSpatial(Spatial spatial) {
-        HamsterControl newcontrol = new HamsterControl(bulletAppState, serverAppState);
+        HamsterControl newcontrol = new HamsterControl(bulletAppState, serverAppState, name);
         newcontrol.setSpatial(spatial);
         return newcontrol;
     }
@@ -88,21 +91,22 @@ public class HamsterControl extends AbstractControl implements AnimEventListener
     public void onAnimCycleDone(AnimControl control, AnimChannel channel, String animName) {
         if (physicsCharacter.isOnGround() && Math.random() < 0.1) {
             physicsCharacter.jump();
-            playAnim("jump");
-            channel.setSpeed(0.333f);
+            playAnim("jump", 0.333f);
+
         } else {
-            playAnim("walk");
+            playAnim("walk", 1);
         }
     }
 
     public void onAnimChange(AnimControl control, AnimChannel channel, String animName) {
     }
 
-    private void playAnim(String animName) {
-        if (serverAppState != null) {
-            serverAppState.getServer().broadcast(new AnimationMessage("Hamster", animName, 0.333f).setReliable(true));
+    private void playAnim(String animName, float speed) {
+        if (serverAppState != null && serverAppState.getServer() != null) {
+            serverAppState.getServer().broadcast(new AnimationMessage(name, animName, speed).setReliable(true));
         }
         channel.setAnim(animName);
+        channel.setSpeed(speed);
         channel.setLoopMode(LoopMode.DontLoop);
     }
 }

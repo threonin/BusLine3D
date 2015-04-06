@@ -83,9 +83,6 @@ public class BusClientAppState extends AbstractAppState implements ActionListene
         busNode = (Node) this.app.getRootNode().getChild("Bus");
         clientAppState.observeSpatial("Bus", busNode);
 
-        Node hamster = (Node) this.app.getRootNode().getChild("Hamster");
-        clientAppState.observeSpatial("Hamster", hamster);
-
         clientAppState.setMessageHandler(this);
         clientAppState.sendMessage(new SetNameMessage(stationname));
         NetworkAssetLocator.setClientAppState(clientAppState);

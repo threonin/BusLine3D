@@ -1,6 +1,7 @@
 package busline3d.appstate;
 
 import busline3d.BusLine3D;
+import busline3d.control.HamsterControl;
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
@@ -27,6 +28,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import de.lessvoid.nifty.Nifty;
+import java.util.Collections;
 import util.UtilFunctions;
 import util.appstate.ServerAppState;
 
@@ -61,6 +63,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
     private float stopped;
     private HudAppState hudAppState;
     private Nifty nifty;
+    private int hamstercount;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -151,6 +154,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         inputManager.addMapping("Reset", new KeyTrigger(KeyInput.KEY_RETURN));
         inputManager.addMapping("TogglePhysics", new KeyTrigger(KeyInput.KEY_P));
         inputManager.addMapping("ToggleInfo", new KeyTrigger(KeyInput.KEY_I));
+        inputManager.addMapping("Hamster", new KeyTrigger(KeyInput.KEY_H));
         inputManager.addListener(this, "Lefts");
         inputManager.addListener(this, "Rights");
         inputManager.addListener(this, "Ups");
@@ -159,6 +163,7 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
         inputManager.addListener(this, "Reset");
         inputManager.addListener(this, "TogglePhysics");
         inputManager.addListener(this, "ToggleInfo");
+        inputManager.addListener(this, "Hamster");
     }
 
     public void onAction(String binding, boolean value, float tpf) {
@@ -214,6 +219,29 @@ public class DriveBusAppState extends AbstractAppState implements ActionListener
                 alphastep = SPEED / radius;
                 busControl.setKinematic(true);
                 autopilot = true;
+            }
+        } else if (binding.equals("Hamster")) {
+            if (value) {
+                Node hamster = (Node) this.app.getAssetManager().loadModel("Models/tentaclehamster/tentaclehamster.j3o");
+                String name = "ObjectHamster" + hamstercount++;
+                hamster.setLocalTranslation(busNode.getWorldTranslation().add(busControl.getForwardVector(null).multLocal(20)));
+                hamster.setLocalRotation(busNode.getWorldRotation().opposite());
+                hamster.setLocalScale(2);
+                ServerAppState serverAppState = app.getStateManager().getState(ServerAppState.class);
+                if (serverAppState == null || serverAppState.getServer() == null) {
+                    hamster.setName(name);
+                    this.app.getRootNode().attachChild(hamster);
+                } else {
+                    hamster.setName("Hamster");
+                    Vector3f location = hamster.getLocalTranslation().clone();
+                    Quaternion rotation = hamster.getLocalRotation().clone();
+                    hamster.removeFromParent();
+                    hamster.setLocalTransform(Transform.IDENTITY);
+                    hamster = serverAppState.addObservedSpatial(hamster, location, rotation, name, "Models/tentaclehamster/tentaclehamster.j3o");
+                    serverAppState.addObjects(Collections.singletonList((Spatial) hamster));
+                }
+                BulletAppState bulletAppState = this.app.getStateManager().getState(BulletAppState.class);
+                hamster.addControl(new HamsterControl(bulletAppState, serverAppState, name));
             }
         } else if (autopilot) {
             autopilot = false;

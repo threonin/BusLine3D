@@ -13,6 +13,7 @@ The sun is from here: https://openclipart.org/detail/1212/sol-de-mayo-bandera-de
 
 It can be controled with the arrow keys, space is the brake.
 Physics debug information can be displayed with P and frame rate with I.
+To spawn a tentaclehamster press H.
 Enter enables demo mode, the bus location will be reset to the road, it will drive automatically and stop at every station. To leave demo mode simply steer the bus in any direction.
 By dragging with the mouse you can change the view and with the mousewheel alter view distance.
 When you drive near a station passengers will randomly enter or leave the bus, you can also topple trees/stations/signs.
